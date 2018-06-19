@@ -1,0 +1,37 @@
+{
+  "$schema": "https://dev.office.com/json-schemas/spfx-build/config.2.0.schema.json",
+  "version": "2.0",
+  "bundles": {
+    "list-operations-web-part": {
+      "components": [
+        {
+          "entrypoint": "./lib/webparts/listOperations/ListOperationsWebPart.js",
+          "manifest": "./src/webparts/listOperations/ListOperationsWebPart.manifest.json"
+        }
+      ]
+    },
+    "task-manager-web-part": {
+      "components": [
+        {
+          "entrypoint": "./lib/webparts/taskManager/TaskManagerWebPart.js",
+          "manifest": "./src/webparts/taskManager/TaskManagerWebPart.manifest.json"
+        }
+      ]
+    },
+    "task-log-web-part": {
+      "components": [
+        {
+          "entrypoint": "./lib/webparts/taskLog/TaskLogWebPart.js",
+          "manifest": "./src/webparts/taskLog/TaskLogWebPart.manifest.json"
+        }
+      ]
+    }
+  },
+  "externals": {},
+  "localizedResources": {
+    "ListOperationsWebPartStrings": "lib/webparts/listOperations/loc/{locale}.js",
+    "ControlStrings": "node_modules/@pnp/spfx-controls-react/lib/loc/{locale}.js",
+    "TaskManagerWebPartStrings": "lib/webparts/taskManager/loc/{locale}.js",
+    "TaskLogWebPartStrings": "lib/webparts/taskLog/loc/{locale}.js"
+  }
+}
