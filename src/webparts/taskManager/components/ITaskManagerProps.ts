@@ -1,3 +1,4 @@
 export interface ITaskManagerProps {
-  description: string;
+  list: string;
+  context: any;
 }
