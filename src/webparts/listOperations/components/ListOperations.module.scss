@@ -36,6 +36,7 @@
     @include ms-font-l;
     @include ms-fontColor-white;
   }
+  
 
   .button {
     // Our button
@@ -71,4 +72,7 @@
       display: inline-block;
     }
   }
+}
+.header{
+  max-height: 183px;
 }

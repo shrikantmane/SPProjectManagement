@@ -9,7 +9,7 @@ import { SPComponentLoader } from '@microsoft/sp-loader';
 import { escape } from '@microsoft/sp-lodash-subset';
 import BaseTable from './BaseTable/BaseTable'
 import {sp, ItemAddResult} from "@pnp/sp";
-
+import GunttChart from './GunttChart/GunttChart'
 export default class TaskManager extends React.Component<ITaskManagerProps, ITaskManagerState> {
   constructor(props){
     super(props);
@@ -20,10 +20,15 @@ export default class TaskManager extends React.Component<ITaskManagerProps, ITas
   }
   public render(): React.ReactElement<ITaskManagerProps> {
     return (
+      <div>
       <BaseTable 
         fields = {this.state.fields}
         items = {this.state.items}
       />
+      {/* <GunttChart
+    /> */}
+      </div>
+      
     );
   }
 
