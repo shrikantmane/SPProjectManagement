@@ -61,7 +61,6 @@ export class Activities extends React.Component<{}, IActivityState> {
                                             'data-title': 'My Activity'
                                         }}
                                     >
-                                        {/* <Label className={exampleStyles.exampleLabel}>No recent activity found</Label> */}
                                         <div>
                                             <table className={exampleStyles.exampleLabel} style={{ innerWidth: '100%' }} >
                                                 <tbody>
@@ -99,13 +98,11 @@ export class Activities extends React.Component<{}, IActivityState> {
                                                         <td>Testing Title 6</td>
                                                         <td>loren ipsum 26</td>
                                                         <td>loren ipsum 26</td>
-                                                       
                                                     </tr>
                                                     <tr>
                                                         <td>Testing Title 7</td>
                                                         <td>loren ipsum 27</td>
                                                         <td>loren ipsum 27</td>
-                                                        
                                                     </tr>
                                                 </tbody>
                                             </table>
