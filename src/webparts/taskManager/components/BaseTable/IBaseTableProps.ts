@@ -1,6 +1,6 @@
 export interface IBaseTableProps {
     fields: ISpField[];
     items: ISpTaskItem[];
-    list: string;
+    onRefreshItems: () => void;
   }
   

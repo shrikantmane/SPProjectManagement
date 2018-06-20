@@ -26,7 +26,7 @@ export default class TaskManager extends React.Component<ITaskManagerProps, ITas
       <BaseTable 
         fields = {this.state.fields}
         items = {this.state.items}
-        list = {this.props.list}
+        onRefreshItems= {this._onRefreshItems.bind(this)}
       />
 
       </div>
@@ -64,7 +64,7 @@ export default class TaskManager extends React.Component<ITaskManagerProps, ITas
     //Get all list items
     sp.web.lists.getById(props.list)
       .items
-      .select("Title", "AssignedTo/Title", "AssignedTo/ID", "DueDate", "Status","Priority").expand("AssignedTo")
+      .select("ID","Title", "AssignedTo/Title", "AssignedTo/ID", "DueDate", "Status","Priority").expand("AssignedTo")
       .get()
       .then((response) => {
         console.log(response);
@@ -72,5 +72,8 @@ export default class TaskManager extends React.Component<ITaskManagerProps, ITas
           items: response
         });
       });
+  }
+  private _onRefreshItems(): void {
+    this._getListItems(this.props);
   }
 }
