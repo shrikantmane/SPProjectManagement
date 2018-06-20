@@ -97,6 +97,7 @@ export default class ListOperations extends React.Component<IListOperationsProps
             onRefreshItems= {this._onRefreshItems.bind(this)}
           />
         </div>
+        
       )
   }
   

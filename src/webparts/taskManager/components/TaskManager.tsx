@@ -15,7 +15,8 @@ export default class TaskManager extends React.Component<ITaskManagerProps, ITas
     super(props);
     this.state = {
       fields: [],
-      items: []
+      items: [],
+      
     }
   }
   public render(): React.ReactElement<ITaskManagerProps> {
@@ -23,6 +24,7 @@ export default class TaskManager extends React.Component<ITaskManagerProps, ITas
       <BaseTable 
         fields = {this.state.fields}
         items = {this.state.items}
+        onRefreshItems= {this._onRefreshItems.bind(this)}
       />
     );
   }
@@ -62,5 +64,9 @@ export default class TaskManager extends React.Component<ITaskManagerProps, ITas
           items: response
         });
       });
+  }
+
+  private _onRefreshItems(): void {
+    this._getListItems(this.props);
   }
 }

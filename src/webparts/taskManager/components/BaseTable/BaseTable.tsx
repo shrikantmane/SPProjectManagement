@@ -147,9 +147,9 @@ export default class BaseTable extends React.Component<IBaseTableProps, PopOverS
                             <div className={styles.CellStyle}>
                                 <div className={`${styles["name-cell-component"]} ${styles["name-text"]}`}>{item.Title}</div> 
                             </div> 
-                            <div  className={styles.CellStyle} ref="status" onClick={this.handleClick.bind(this)} >{item.Status}</div> 
+                            <div  className={styles.CellStyle} ref="status" onClick={this.handleClick.bind(this)} ><span style={this.HideSpan}>{item.Id}</span> {item.Status}</div> 
                             <div className={styles.CellStyle} >{item.DueDate}</div>
-                            <div className={styles.CellStyle}  ref="priority" onClick={this.handleClickNew.bind(this)} >{item.Priority}</div>
+                            <div className={styles.CellStyle}  ref="priority" onClick={this.handleClickNew.bind(this)} ><span style={this.HideSpan}>{item.Id}</span> {item.Priority}</div>
                             <div className={styles.CellStyle}>{item.AssignedTo[0].Title}</div>
                           </div>);
                     })
@@ -187,54 +187,72 @@ export default class BaseTable extends React.Component<IBaseTableProps, PopOverS
     }
  
   // Ashwini 
-  handleClick(e,itemId) {
+  handleClick(e) {
+
+    console.log("sta -", e.target.firstChild.textContent);
+    
+
     this.setState({
-        open: true
-        //itemID: itemId
+        open: true,
+        itemID: e.target.firstChild.textContent
     });
   }
 
-    handleClickNew(e,itemId) {
+    handleClickNew(e) {
+        console.log("pri -", e.target.firstChild.textContent);
     this.setState({
-        show: true
-        //itemID: itemId
+        show: true,
+        itemID: e.target.firstChild.textContent
     });
-    console.log("itemID: ", this.state.itemID);
   }
  
   handleClose(e) {
     this.setState({
-        open: false
-        //itemID: 0
+        open: false,
+        itemID: 0
     });
   }
 
     handleCloseNew(e) {
     this.setState({
-        show: false
-        //itemID: 0
+        show: false,
+        itemID: 0
     });
   }
 
     private _alertClicked(e,text): void {
     let list = pnp.sp.web.lists.getByTitle("TaskList");
-    list.items.getById(1).update({
+    list.items.getById(this.state.itemID).update({
         Status : text
     }).then(i => {
-        alert("Status "+text+" saved succefully!!!");
+         this.props.onRefreshItems();
+         this.setState({
+            open: false,
+            itemID: 0
+        });
+        //alert("Status "+text+" saved succefully!!!");
     });
   }
 
     private _alertClickedNew(e,text): void {
     let list = pnp.sp.web.lists.getByTitle("TaskList");
-    list.items.getById(1).update({
+    list.items.getById(this.state.itemID).update({
         Priority : text
     }).then(i => {
-        alert("Priority "+text+" saved succefully!!!");
+         this.props.onRefreshItems();
+          this.setState({
+            show: false,
+            itemID: 0
+        });
+        //alert("Priority "+text+" saved succefully!!!");
     });
   }
 
   //css starts
+      HideSpan ={
+          display: 'none' as 'none'
+      }
+
       StatusPickerClass ={
           position: 'relative' as 'relative',
           background: '#fff' as '#fff'
