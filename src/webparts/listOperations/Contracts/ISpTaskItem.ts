@@ -7,5 +7,6 @@ interface ISpTaskItem{
       ID: number,
       Title: string
     }
+    Priority:string;
   }
   

@@ -4,28 +4,31 @@
   .headerCaptionStyle{
     background:  #4B6978 ;
     display:  table-row ;
-    border:  solid ;
+    border:  solid 1px ;
     text-align :  center ;
     width :  420px ;
     height :  30px ;
     padding-top :  3px ;
     color :  white ;
-    margin-left :  100px ;
+    margin-left :  10px ;
     display :  block ;
+
+    
   }
 
   .CellStyle{ 
     display:  table-cell ;
-    border:  solid ;
+    border:  solid 1px;
     border-color :  white ;
     text-align :  center ;
     width :  100px ;
     height :  30px ;
-    padding-top :  10px ;
+    // padding-top :  10px ;
+    vertical-align: middle;
   } 
 
   .headerStyle{
-    background:  #4B6978 ;
+    background:  #fff ;
     display:  table-row ;
     border:  solid ;
     text-align :  center ;
@@ -33,11 +36,25 @@
     height :  30px ;
     padding-top :  10px ;
     color :  white ;
-   }
 
+    position: relative;
+    min-width: 0;
+    text-align: center;
+    font-size: 13px;
+    color: #333;
+    min-height: 40px;
+    padding: 10px 0 0;
+    border-right: 1px solid #fff;
+    flex-grow: 0;
+    flex-shrink: 0;
+    :hover{
+      background: #f7f7f7;
+    }
+   }
+  
   .tableStyle{ 
     display:  table ;
-    margin-left :  100px ;
+    margin-left :  10px ;
    }
 
    .rowStyle{
@@ -60,4 +77,20 @@
     font-weight: 400;
     font-size: 13px;
   }
+
+  .task-title{
+    display: flex;
+    flex: 1;
+    align-items: center;
+    min-width: 0;
+    padding-left: 10px;
+    line-height: 24px;
+    text-decoration: none;
+    color: #596496;
+    font-weight: 400;
+    font-size: 13px;
+  }
+
+  
+  
 }

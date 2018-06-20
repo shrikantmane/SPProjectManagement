@@ -9,6 +9,7 @@ import { SPComponentLoader } from '@microsoft/sp-loader';
 import { escape } from '@microsoft/sp-lodash-subset';
 import BaseTable from './BaseTable/BaseTable'
 import {sp, ItemAddResult} from "@pnp/sp";
+import  Activities from '../components/Activities/ActivityLayer';
 
 export default class TaskManager extends React.Component<ITaskManagerProps, ITaskManagerState> {
   constructor(props){
@@ -20,10 +21,15 @@ export default class TaskManager extends React.Component<ITaskManagerProps, ITas
   }
   public render(): React.ReactElement<ITaskManagerProps> {
     return (
+      <div>
+      <Activities />
       <BaseTable 
         fields = {this.state.fields}
         items = {this.state.items}
+        list = {this.props.list}
       />
+
+      </div>
     );
   }
 
@@ -31,7 +37,10 @@ export default class TaskManager extends React.Component<ITaskManagerProps, ITas
     this._getListFields(this.props);
     this._getListItems(this.props);
   }
-
+  public componentWillReceiveProps(nextProps) {
+    this._getListFields(nextProps);
+    this._getListItems(nextProps);
+  }
   private _getListFields(props): void {
     
     if(props.list === "")
@@ -47,6 +56,7 @@ export default class TaskManager extends React.Component<ITaskManagerProps, ITas
       });
   }
 
+
   private _getListItems(props): void {
     
     if(props.list === "")
@@ -54,7 +64,7 @@ export default class TaskManager extends React.Component<ITaskManagerProps, ITas
     //Get all list items
     sp.web.lists.getById(props.list)
       .items
-      .select("Title", "AssignedTo/Title", "AssignedTo/ID", "DueDate", "Status").expand("AssignedTo")
+      .select("Title", "AssignedTo/Title", "AssignedTo/ID", "DueDate", "Status","Priority").expand("AssignedTo")
       .get()
       .then((response) => {
         console.log(response);

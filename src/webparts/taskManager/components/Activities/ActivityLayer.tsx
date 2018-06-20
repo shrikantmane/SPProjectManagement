@@ -12,7 +12,7 @@ const exampleStyles: any = exampleStylesImport;
 
 
 
-export class Activities extends React.Component<{}, IActivityState> {
+export default class Activities extends React.Component<{}, IActivityState> {
     constructor(props: {}) {
         super(props);
 
