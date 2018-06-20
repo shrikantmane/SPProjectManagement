@@ -32,7 +32,9 @@
     "office-ui-fabric-react": "^6.5.0",
     "react": "15.6.2",
     "react-dom": "15.6.2",
-    "reactstrap": "^6.1.0"
+    "react-simple-popover": "^0.2.4",
+    "reactstrap": "^6.1.0",
+    "sp-pnp-js": "^3.0.9"
   },
   "devDependencies": {
     "@microsoft/sp-build-web": "1.5.0",

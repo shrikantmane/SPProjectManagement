@@ -40,7 +40,7 @@ export default class TaskManager extends React.Component<ITaskManagerProps, ITas
     sp.web.lists.getById(props.list)
       .fields.filter("Hidden eq false and ReadOnlyField eq false and Group eq 'Custom Columns'")
       .get().then((response: ISpField[]) => {
-        console.log(response);
+        //console.log(response);
         this.setState({
           fields: response
         });
@@ -54,10 +54,10 @@ export default class TaskManager extends React.Component<ITaskManagerProps, ITas
     //Get all list items
     sp.web.lists.getById(props.list)
       .items
-      .select("Title", "AssignedTo/Title", "AssignedTo/ID", "DueDate", "Status").expand("AssignedTo")
+      .select("ID", "Title", "AssignedTo/Title", "AssignedTo/ID", "DueDate", "Status", "Priority").expand("AssignedTo")
       .get()
       .then((response) => {
-        console.log(response);
+        //console.log(response);
         this.setState({
           items: response
         });
