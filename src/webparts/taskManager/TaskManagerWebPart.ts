@@ -11,8 +11,13 @@ import * as strings from 'TaskManagerWebPartStrings';
 import TaskManager from './components/TaskManager';
 import { ITaskManagerProps } from './components/ITaskManagerProps';
 
+import {
+  PropertyFieldListPicker,
+  PropertyFieldListPickerOrderBy
+} from '@pnp/spfx-property-controls/lib/PropertyFieldListPicker';
+
 export interface ITaskManagerWebPartProps {
-  description: string;
+  list: string;
 }
 
 export default class TaskManagerWebPart extends BaseClientSideWebPart<ITaskManagerWebPartProps> {
@@ -21,7 +26,8 @@ export default class TaskManagerWebPart extends BaseClientSideWebPart<ITaskManag
     const element: React.ReactElement<ITaskManagerProps > = React.createElement(
       TaskManager,
       {
-        description: this.properties.description
+        list: this.properties.list,
+        context: this.context
       }
     );
 
@@ -47,8 +53,18 @@ export default class TaskManagerWebPart extends BaseClientSideWebPart<ITaskManag
             {
               groupName: strings.BasicGroupName,
               groupFields: [
-                PropertyPaneTextField('description', {
-                  label: strings.DescriptionFieldLabel
+                PropertyFieldListPicker('list', {
+                  label: strings.DescriptionFieldLabel,
+                  selectedList:this.properties.list,
+                  includeHidden:false,
+                  orderBy:PropertyFieldListPickerOrderBy.Title,
+                  disabled:false,
+                  onPropertyChange: this.onPropertyPaneFieldChanged.bind(this),
+                  properties:this.properties,
+                  context:this.context,
+                  onGetErrorMessage:null,
+                  deferredValidationTime:0,
+                  key: 'listPickerFieldId'
                 })
               ]
             }
