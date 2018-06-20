@@ -67,7 +67,7 @@ export default class BaseTable extends React.Component<IBaseTableProps, PopOverS
         >
          <DefaultButton
             data-automation-id="NotStarted"
-            onClick={(e) => this._alertClicked(e,"Not Started")}
+            onClick={(e) => this._alertClicked.bind(this)}
             text="Not Started"
             style={this.NotStartedClass}
           />
@@ -168,14 +168,14 @@ export default class BaseTable extends React.Component<IBaseTableProps, PopOverS
 
                           taskTitleElement = <div className={[styles.CellStyle, styles["task-title"]].join(' ')}  style={{width: '300'}}><span>{item.Title}</span></div>
                           if(item.Status === "Completed"){
-                            statusElement = <div ref="status" onClick={this.handleClick.bind(this)} className={styles.CellStyle} style={{backgroundColor: '#00c875', width: '170',fontSize:'12', fontWeight: 400, color:'#fff'}}><span>{item.Status}</span></div>
+                            statusElement = <div ref="status" onClick={this.handleClick.bind(this)} className={styles.CellStyle} style={{backgroundColor: '#00c875', width: '170',fontSize:'12', fontWeight: 400, color:'#fff'}}><span style={this.HideSpan}>{item.Id}</span>{item.Status}</div>
                           } else {
-                            statusElement = <div ref="status" onClick={this.handleClick.bind(this)} className={styles.CellStyle} style={{backgroundColor: '#e2435c', width: '170', fontSize:'12', fontWeight: 400, color:'#fff'}}><span>{item.Status}</span></div>
+                            statusElement = <div ref="status" onClick={this.handleClick.bind(this)} className={styles.CellStyle} style={{backgroundColor: '#e2435c', width: '170', fontSize:'12', fontWeight: 400, color:'#fff'}}><span style={this.HideSpan}>{item.Id}</span>{item.Status}</div>
                           }
                           if(item.Priority ===   "(2) Normal"){
-                            priorityElement = <div ref="priority" onClick={this.handleClickNew.bind(this)} className={styles.CellStyle} style={{backgroundColor: '#00c875',width: '150', fontSize:'12', fontWeight: 400, color:'#fff', textAlign: 'left', paddingLeft:'8px'}}><span>{item.Priority}</span></div>
+                            priorityElement = <div ref="priority" onClick={this.handleClickNew.bind(this)} className={styles.CellStyle} style={{backgroundColor: '#00c875',width: '150', fontSize:'12', fontWeight: 400, color:'#fff', textAlign: 'left', paddingLeft:'8px'}}><span style={this.HideSpan}>{item.Id}</span>{item.Priority}</div>
                           } else {
-                            priorityElement = <div ref="priority" onClick={this.handleClickNew.bind(this)} className={styles.CellStyle} style={{backgroundColor: '#e2435c',width: '150', fontSize:'12', fontWeight: 400, color:'#fff', textAlign: 'left', paddingLeft:'8px'}}><span>{item.Priority}</span></div>
+                            priorityElement = <div ref="priority" onClick={this.handleClickNew.bind(this)} className={styles.CellStyle} style={{backgroundColor: '#e2435c',width: '150', fontSize:'12', fontWeight: 400, color:'#fff', textAlign: 'left', paddingLeft:'8px'}}><span style={this.HideSpan}>{item.Id}</span>{item.Priority}</div>
                           }    
                           if(item.AssignedTo[0].Title ===   "Shrikant Mane"){
                             ownerElement = <div onClick={this.handleLoginClick} className={styles.CellStyle}><img src="https://files.monday.com/photos/4038149/thumb_small/4038149-dapulse_green.png?1528873676" className="inline-image" title={item.AssignedTo[0].Title} alt={item.AssignedTo[0].Title} style={{position: 'relative', width: 25, height: 25, margin: 'auto', display: 'inline-block', verticalAlign: 'top', overflow: 'hidden', borderRadius: '50%', border: 0}} /></div>
@@ -208,6 +208,8 @@ export default class BaseTable extends React.Component<IBaseTableProps, PopOverS
             </div>
 
         </div>
+
+        <br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/>
         
             {/* <div className={styles["tableStyle"]} >  
                 <div className={styles.headerStyle} > 
@@ -218,6 +220,7 @@ export default class BaseTable extends React.Component<IBaseTableProps, PopOverS
                 </div> 
             </div>  */}
         </div>
+
 
     );
   }
@@ -246,19 +249,19 @@ export default class BaseTable extends React.Component<IBaseTableProps, PopOverS
         return _tableHeaders;
     }
 
-    handleClick(e,itemId) {
+    handleClick(e) {
         this.setState({
-            open: true
-            //itemID: itemId
+            open: true,
+            itemID: e.target.firstChild.textContent
         });
       }
     
-        handleClickNew(e,itemId) {
+        handleClickNew(e) {
         this.setState({
-            show: true
-            //itemID: itemId
+            show: true,
+            itemID: e.target.firstChild.textContent
         });
-        console.log("itemID: ", this.state.itemID);
+        //console.log("itemID: ", e.target.firstChild.textContent);
       }
      
       handleClose(e) {
@@ -277,23 +280,37 @@ export default class BaseTable extends React.Component<IBaseTableProps, PopOverS
     
         private _alertClicked(e,text): void {
         let list = pnp.sp.web.lists.getByTitle("TaskList");
-        list.items.getById(1).update({
+        list.items.getById(this.state.itemID).update({
             Status : text
         }).then(i => {
-            alert("Status "+text+" saved succefully!!!");
+          this.props.onRefreshItems();
+          this.setState({
+            open: false,
+            itemID: 0
+        });
+            //alert("Status "+text+" saved succefully!!!");
         });
       }
     
         private _alertClickedNew(e,text): void {
         let list = pnp.sp.web.lists.getByTitle("TaskList");
-        list.items.getById(1).update({
+        list.items.getById(this.state.itemID).update({
+          
             Priority : text
         }).then(i => {
-            alert("Priority "+text+" saved succefully!!!");
+          this.props.onRefreshItems();
+          this.setState({
+            show: false,
+            itemID: 0
+        });
+            //alert("Priority "+text+" saved succefully!!!");
         });
       }
     
       //css starts
+      HideSpan ={
+        display: 'none' as 'none'
+    }
           StatusPickerClass ={
               position: 'relative' as 'relative',
               background: '#fff' as '#fff'
