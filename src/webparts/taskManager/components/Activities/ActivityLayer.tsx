@@ -3,23 +3,30 @@ import { Customizer } from '@uifabric/utilities';
 import { Panel } from 'office-ui-fabric-react/lib/components/Panel';
 import { Checkbox } from 'office-ui-fabric-react/lib/components/Checkbox';
 import { LayerHost } from 'office-ui-fabric-react/lib/components/Layer';
-import { IActivityState } from './IActivityState';
+import { IActivityState,IActivityDetails,IActivityList } from './IActivityState';
 import { Button } from 'office-ui-fabric-react/lib/Button';
 import { Label } from 'office-ui-fabric-react/lib/components/Label';
 import { Pivot, PivotItem } from 'office-ui-fabric-react/lib/components/Pivot';
 import * as exampleStylesImport from 'office-ui-fabric-react/lib/common/_exampleStyles.scss';
 const exampleStyles: any = exampleStylesImport;
 
-
+import pnp from "sp-pnp-js";
+let rows : any[];
+let tableData : IActivityDetails[];
 
 export default class Activities extends React.Component<{}, IActivityState> {
     constructor(props: {}) {
         super(props);
 
+        //rows : [];
+
         this.state = {
             showPanel: false,
             trapPanel: false
         };
+
+        this._getActivityDetails = this._getActivityDetails.bind(this);
+        this._getActivityDetails();
     }
 
     public render(): React.ReactElement<IActivityState> {
@@ -63,48 +70,7 @@ export default class Activities extends React.Component<{}, IActivityState> {
                                     >
                                         <div>
                                             <table className={exampleStyles.exampleLabel} style={{ innerWidth: '100%' }} >
-                                                <tbody>
-                                                    <tr>
-                                                        <td>Testing Title 1</td>
-                                                        <td>loren ipsum 21</td>
-                                                        <td>loren ipsum 21</td>
-                                                       
-                                                    </tr>
-                                                    <tr>
-                                                        <td>Testing Title 2</td>
-                                                        <td>loren ipsum 22</td>
-                                                        <td>loren ipsum 22</td>
-                                                        
-                                                    </tr>
-                                                    <tr>
-                                                        <td>Testing Title 3</td>
-                                                        <td>loren ipsum 23</td>
-                                                        <td>loren ipsum 23</td>
-                                                        
-                                                    </tr>
-                                                    <tr>
-                                                        <td>Testing Title 4</td>
-                                                        <td>loren ipsum 24</td>
-                                                        <td>loren ipsum 24</td>
-                                                       
-                                                    </tr>
-                                                    <tr>
-                                                        <td>Testing Title 5</td>
-                                                        <td>loren ipsum 25</td>
-                                                        <td>loren ipsum 25</td>
-                                                        
-                                                    </tr>
-                                                    <tr>
-                                                        <td>Testing Title 6</td>
-                                                        <td>loren ipsum 26</td>
-                                                        <td>loren ipsum 26</td>
-                                                    </tr>
-                                                    <tr>
-                                                        <td>Testing Title 7</td>
-                                                        <td>loren ipsum 27</td>
-                                                        <td>loren ipsum 27</td>
-                                                    </tr>
-                                                </tbody>
+                                                <tbody>{rows}</tbody>
                                             </table>
 
                                         </div>
@@ -156,6 +122,29 @@ export default class Activities extends React.Component<{}, IActivityState> {
                 />
             </div>
         );
+    }
+
+    private async _getActivityDetails(): Promise<void> {
+        // var CustomRow = React.createClass({
+        //     render: function() {
+        //         return (
+        //             <tr>
+        //                 <td>{this.props.oldValue}</td>
+        //                 <td>{this.props.newValue}</td>
+        //             </tr>
+        //         );
+        //     }
+        // });
+
+        let items = await pnp.sp.web.lists.getByTitle('Activity Log').items.select("Old_x0020_Value", "New_x0020_Value")
+          .orderBy("Modified", false).get();
+
+        let itemDatableDatataTable = items.tableData;
+        console.log('itemDatableDatataTable is:' + itemDatableDatataTable);
+        items.array.forEach(element => {
+             console.log('element is:' + element);
+         });
+                  
     }
 
     private _onDismissPanel = (): void => {
