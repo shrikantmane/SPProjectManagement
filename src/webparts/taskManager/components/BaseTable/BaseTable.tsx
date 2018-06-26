@@ -27,7 +27,10 @@ export interface PopOverState {
   open: boolean;
   show: boolean;
   itemID: number;
-  items: { title: string; owner: string; status: string; priority: string }[];
+  items: { id :number, title: string; owner: string; status: string; priority: string }[];
+  colorCodes:{status:string; colorCode:string}[];
+  ownerList:{id:number; name:string}[];
+  ownerSearchString : string;
   selectedItems: {
     title: string;
     owner: string;
@@ -62,40 +65,62 @@ export default class BaseTable extends React.Component<
       itemID: 0,
       items: [
         {
+          id:1,
           title: "title1",
           owner: "owner1",
           status: "Done",
           priority: "priority1"
         },
         {
+          id:2,
           title: "title2",
           owner: "owner2",
-          status: "Working On It",
+          status: "Working",
           priority: "priority2"
         },
         {
+          id:3,
           title: "title3",
           owner: "owner3",
-          status: "Stuck",
+          status: "Not Started",
           priority: "priority3"
         },
         {
+          id:4,
           title: "title4",
           owner: "owner4",
-          status: "Inprogress",
+          status: "In Process",
           priority: "priority4"
         },
-        {
-          title: "title5",
-          owner: "owner5",
-          status: "Completed",
-          priority: "priority4"
-        }
       ],
-      selectedItems: []
+      colorCodes:[{
+        status:'Done',
+        colorCode:'rgb(0, 200, 117)'
+      },{
+        status:'Working',
+        colorCode:'rgb(253, 171, 61)'
+      },{
+        status:'In Process',
+        colorCode:'rgb(196, 196, 196)'
+      },{
+        status:'Not Started',
+        colorCode:'rgb(255, 100, 46)'
+      }],
+      selectedItems: [],
+      ownerList:[{
+        id:1,
+        name:'Abcd'   
+      },{
+        id:2,
+        name:'Test'   
+      }     
+    ],
+    ownerSearchString: ''
     };
     this.statusTemplate = this.statusTemplate.bind(this);
-    // this.onClick = this.onClick.bind(this);
+    this.showStatusPopOverColors = this.showStatusPopOverColors.bind(this);
+    this.ownerTemplate = this.ownerTemplate.bind(this);
+    this.onOwnerChange = this.onOwnerChange.bind(this);
   } 
 
   private handleLoginClick(): void {
@@ -108,27 +133,52 @@ export default class BaseTable extends React.Component<
   //   onClick(event) {
   //     this.op.toggle(event);
   // }
+componentDidMount(){
+  this.getColorCodes();
+}
 
+onOwnerChange(e){
+  this.setState({ownerSearchString:e.target.value});
+}
+ownerTemplate(rowData, column){
+  let owners= this.state.ownerList;
+  let ownerSearchString = this.state.ownerSearchString.trim().toLowerCase();
+  if(ownerSearchString.length > 0){
+   owners = this.state.ownerList.filter(function(item){
+        return item.name.toLowerCase().match(ownerSearchString);
+    });
+}
+  const popoverFocus = (
+    <Popover id="popover-trigger-click">
+      <div>
+      <input type="text" placeholder="Person Name" onChange={this.onOwnerChange.bind(this)}/>
+        { 
+          owners.map(function(item){
+              return <div style = {{ padding:'5px 0px 5px 0px', cursor: 'pointer'}}>{item.name}</div>
+          }) 
+        }
+      </div> 
+    </Popover>
+  );
+  return (
+    <OverlayTrigger trigger="click" placement="bottom" overlay={popoverFocus}>
+     <i className="fa fa-user"></i>
+    </OverlayTrigger>
+  );
+}
+
+showStatusPopOverColors(rowdata) {
+  return (this.state.colorCodes.map(item=>{
+    return (<div style={{ backgroundColor: item.colorCode,height:'2em', textAlign: 'center', marginBottom:'5px', padding:'3px'}} onClick={(e) => alert(rowdata.id)}>
+        <span>{item.status}</span>
+    </div>)
+  }))
+}
   statusTemplate(rowData, column) {
     const popoverFocus = (
-      <Popover id="popover-trigger-click">      
-
-        <div style={{padding: '5px;'}}>
-          <div style={{ backgroundColor: 'rgb(0, 200, 117)',height:'2em', textAlign: 'center', marginBottom:'5px'}} onClick={(e) => alert('done')}>
-            <span>Done</span>
-          </div>
-          <div style={{ backgroundColor: 'rgb(253, 171, 61)',height:'2em', textAlign: 'center', marginBottom:'5px'}}>
-            <span>Working On It</span>
-          </div>
-          <div style={{ backgroundColor: 'rgb(226, 68, 92)',height:'2em', textAlign: 'center', marginBottom:'5px'}}>
-            <span>Stuck</span>
-          </div>
-          <div style={{ backgroundColor: 'rgb(196, 196, 196)',height:'2em', textAlign: 'center', marginBottom:'5px'}}>
-            <span>In Progress</span>
-          </div>
-          <div style={{ backgroundColor: 'rgb(255, 100, 46)',height:'2em', textAlign: 'center', marginBottom:'5px'}}>
-            <span>Completed</span>
-          </div>
+      <Popover id="popover-trigger-click">
+        <div>
+          {this.showStatusPopOverColors(rowData)}
         </div>
       </Popover>
     );
@@ -138,16 +188,13 @@ export default class BaseTable extends React.Component<
       case "Done":
         cellColor = "rgb(0, 200, 117)";
         break;
-      case "Working On It":
+      case "Working":
         cellColor = "rgb(253, 171, 61)";
-        break;
-      case "Stuck":
-        cellColor = "rgb(226, 68, 92)";
-        break;
-      case "Inprogress":
+        break;     
+      case "In Process":
         cellColor = "rgb(196, 196, 196)";
         break;
-      case "Completed":
+      case "Not Started":
         cellColor = "rgb(255, 100, 46)";
         break;
       default:
@@ -156,8 +203,6 @@ export default class BaseTable extends React.Component<
     }
     return (
       <OverlayTrigger trigger="click" placement="bottom" overlay={popoverFocus}>
-        {/* <div style={{backgroundColor: cellColor, padding: '.5em .5em'}}>{rowData['status']}</div>; */}
-        {/* <Button block>{rowData["status"]}</Button> */}
         <div style={{backgroundColor: cellColor, height: '2.5em', width:'100%', textAlign: 'center'}}>{rowData["status"]}</div>
       </OverlayTrigger>
     );
@@ -183,7 +228,13 @@ export default class BaseTable extends React.Component<
         <Column selectionMode="multiple" style={{ width: "2em" }} />
         <Column rowReorder={true} style={{ width: "2em" }} />
         <Column field="title" header="Task" editor={this.taskEditor} />
-        <Column field="owner" header="Owner" />
+        {/* <Column field="owner" header="Owner" /> */}
+        <Column
+          field="owner"
+          header="Owner"
+          body={this.ownerTemplate}
+          style={{ textAlign: 'center'}}
+        />
         <Column
           field="status"
           header="Status"
@@ -445,6 +496,23 @@ export default class BaseTable extends React.Component<
       });
   }
 
+
+  private getColorCodes(): void {
+    
+    // if(props.list === "")
+    //   return;
+    //Get all list items
+    sp.web.lists.getById('f99f45bf-4e40-4c70-823f-d25818442853')
+      .items
+      .select("Title", "Status", "Color_x0020_Code")
+      .get()
+      .then((response) => {
+        console.log(response);
+        // this.setState({
+        //   items: response
+        // });
+      });
+  }
   //css starts
   HideSpan = {
     display: "none" as "none"
