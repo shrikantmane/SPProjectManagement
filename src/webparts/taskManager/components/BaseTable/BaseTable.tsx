@@ -28,16 +28,22 @@ export interface PopOverState {
   show1: boolean;
   statusTarget:any,
   ownerTarget:any,
+  managerTarget:any,
   tagTarget:any,
   target:any,
   showStatusPopover: boolean;
   showOwnerPopover: boolean;
+  showManagerPopover: boolean;
   showTagPopover: boolean;
   itemID: number;
-  items: { id :number, title: string; owner: string; status: string; priority: string, tag:string }[];
-  colorCodes:{status:string; colorCode:string}[];
-  ownerList:{id:number; name:string}[];
+  items:ISpTaskItem[];
+  //items: { id :number, title: string; owner: string; status: string; priority: string, tag:string }[];
+  //colorCodes:ISpColorCode[];
+  // ownerList:{id:number; name:string}[];
+  // ownerList:ISpOwner[];
+  // managerList:ISpOwner[];
   ownerSearchString : string;
+  managerSearchString : string;
   tagSearchString : string;
   tagList:{id:number; name:string}[];
   selectedItems: {
@@ -74,83 +80,56 @@ export default class BaseTable extends React.Component<
       show1: false,
       showStatusPopover: false,
       showOwnerPopover: false,
+      showManagerPopover: false,
       showTagPopover:false,
       target:'',
       statusTarget:'',
       ownerTarget:'',
+      managerTarget:'',
       tagTarget:'',
       itemID: 0,
-      items: [
-        {
+      items: [],
+      //colorCodes:[],
+      selectedItems: [],
+      //ownerList:[],
+     // managerList:[],
+      tagList:[{
           id:1,
-          title: "title1",
-          owner: "owner1",
-          status: "Done",
-          priority: "priority1",
-          tag:'#asdfa'
-        },
-        {
+          name:'#abcd'   
+        },{
           id:2,
-          title: "title2",
-          owner: "owner2",
-          status: "Deployed",
-          priority: "priority2",
-          tag:'#sfgas'
+          name:'#sdgf'   
         },
         {
           id:3,
-          title: "title3",
-          owner: "owner3",
-          status: "Not Started",
-          priority: "priority3",
-          tag:'#hjkhg'
+          name:'#aertgr'   
         },
         {
           id:4,
-          title: "title4",
-          owner: "owner4",
-          status: "In Process",
-          priority: "priority4",
-          tag:'#aesrawe'
-        },
+          name:'#fgjhdf'   
+        }     
       ],
-      colorCodes:[],
-      selectedItems: [],
-      ownerList:[{
-        id:1,
-        name:'Abcd'   
-      },{
-        id:2,
-        name:'Test'   
-      }     
-    ],
-    tagList:[{
-      id:1,
-      name:'#abcd'   
-    },{
-      id:2,
-      name:'#sdgf'   
-    },
-    {
-      id:3,
-      name:'#aertgr'   
-    },
-    {
-      id:4,
-      name:'#fgjhdf'   
-    }     
-  ],
-    ownerSearchString: '',
-    tagSearchString: ''
+      ownerSearchString: '',
+      managerSearchString: '',
+      tagSearchString: ''
     };
     this.statusTemplate = this.statusTemplate.bind(this);
     this.ownerTemplate = this.ownerTemplate.bind(this);
     this.tagsTemplate = this.tagsTemplate.bind(this);
+    this.managerTemplate = this.managerTemplate.bind(this);
     this.onOwnerChange = this.onOwnerChange.bind(this);
+    this.onManagerChange = this.onManagerChange.bind(this);  
     this.onOwnerPopoverHide = this.onOwnerPopoverHide.bind(this);
+    this.onManagerPopoverHide = this.onManagerPopoverHide.bind(this);
     this.onTagPopoverHide = this.onTagPopoverHide.bind(this);
+    this.dueDateTemplate = this.dueDateTemplate.bind(this);
   } 
-
+componentWillReceiveProps(nextProps, prevProps){
+// TODO :Need to find better approch
+  // this.setState({items: this.props.items, colorCodes:this.props.colorCodes, ownerList: this.props.owners, managerList: this.props.owners})
+  if(nextProps.items.length > 0 && nextProps.items.length != this.state.items.length)
+      this.setState({items: this.props.items })
+}
   private handleLoginClick(): void {
     jQuery("table").show();
   }
@@ -158,23 +137,25 @@ export default class BaseTable extends React.Component<
     jQuery("table").hide();
   }
 
-componentDidMount(){
-  this.getColorCodes();
-}
-
 onOwnerChange(e){
   this.setState({ownerSearchString:e.target.value});
+}
+
+onManagerChange(e){
+  this.setState({managerSearchString:e.target.value});
 }
 
 onTagChange(e){
   this.setState({tagSearchString:e.target.value});
 }
-handleClick1 = e => {
-  this.setState({ target: e.target, show1: !this.state.show1 });
-};
+
 onOwnerPopoverHide = e => {
   if(e.target.id !="ownerSearchId")
   this.setState({ showOwnerPopover: false })
+};
+onManagerPopoverHide = e => {
+  if(e.target.id !="managerSearchId")
+  this.setState({ showManagerPopover: false })
 };
 onTagPopoverHide = e => {
   if(e.target.id !="tagSearchId")
@@ -187,29 +168,10 @@ tagsTemplate(rowData, column){
     tags = this.state.tagList.filter(function(item){
         return item.name.toLowerCase().match(tagSearchString);
     });
-  }
-  // const popoverFocus = (
-  //   <Popover id="popover-trigger-click">
-  //     <div className="test">
-  //     <input type="text" placeholder="Add Tags" onChange={this.onTagChange.bind(this)}/>
-  //       { 
-  //         tags.map(function(item){
-  //             return <div style = {{ padding:'5px 0px 5px 0px', cursor: 'pointer'}}>{item.name}</div>
-  //         }) 
-  //       }
-  //     </div> 
-  //   </Popover>
-  // );
-  // return (
-  //   <OverlayTrigger trigger="click" placement="bottom" overlay={popoverFocus}>
-  //    <div>{rowData["tag"]}</div>
-  //    {/* <InputText type="text" value={rowData.tag} /> */}
-  //   </OverlayTrigger>
-  // );
-
+  }  
   return(
     <div>
-      <div onClick={(e) => this.setState({ tagTarget: e.target, showTagPopover: !this.state.showTagPopover, tagSearchString: '' })}>{rowData["tag"]}</div>
+      <div onClick={(e) => this.setState({ tagTarget: e.target, showTagPopover: !this.state.showTagPopover, tagSearchString: '' })}>{rowData["Tags"]}</div>
       
     <Overlay
       show={this.state.showTagPopover}
@@ -220,15 +182,15 @@ tagsTemplate(rowData, column){
       onHide={this.onTagPopoverHide}
       rootClose
     >
-         <Popover id="popover-trigger-click">
-      <div>
-      <input id="tagSearchId" type="text" placeholder="Person Name" onChange={this.onTagChange.bind(this)}/>
-        { 
-          tags.map(function(item){
-              return <div style = {{ padding:'5px 0px 5px 0px', cursor: 'pointer'}}>{item.name}</div>
-          }) 
-        }
-      </div> 
+      <Popover id="popover-trigger-click">
+        <div >
+        <input id="tagSearchId" type="text" placeholder="Tag" onChange={this.onTagChange.bind(this)}/>
+          { 
+            tags.map(function(item, index){
+                return <div key={index} style = {{ padding:'5px 0px 5px 0px', cursor: 'pointer'}}>{item.name}</div>
+            }) 
+          }
+        </div> 
     </Popover>
     </Overlay>
   </div>)
@@ -236,34 +198,16 @@ tagsTemplate(rowData, column){
 }
 
 ownerTemplate(rowData, column){
-  let owners= this.state.ownerList;
+  let owners= this.props.owners;
   let ownerSearchString = this.state.ownerSearchString.trim().toLowerCase();
   if(ownerSearchString.length > 0){
-   owners = this.state.ownerList.filter(function(item){
-        return item.name.toLowerCase().match(ownerSearchString);
+   owners = this.props.owners.filter(function(item){
+        return item.TeamMember.Title.toLowerCase().match(ownerSearchString);
     });
   }
-  // const popoverFocus = (
-  //   <Popover id="popover-trigger-click">
-  //     <div>
-  //     <input type="text" placeholder="Person Name" onChange={this.onOwnerChange.bind(this)}/>
-  //       { 
-  //         owners.map(function(item){
-  //             return <div style = {{ padding:'5px 0px 5px 0px', cursor: 'pointer'}}>{item.name}</div>
-  //         }) 
-  //       }
-  //     </div> 
-  //   </Popover>
-  // );
-  // return (
-  //   <OverlayTrigger trigger="click" placement="bottom" overlay={popoverFocus}>
-  //    <i className="fa fa-user"></i>
-  //   </OverlayTrigger>
-  // );
-
  return(
     <div>
-      <i className="fa fa-user" onClick={(e) => this.setState({ ownerTarget: e.target, showOwnerPopover: !this.state.showOwnerPopover , ownerSearchString: '' })}></i>
+      <i className="fa fa-user"></i><span style={{marginLeft:"5px"}} onClick={(e) => this.setState({ ownerTarget: e.target, showOwnerPopover: !this.state.showOwnerPopover , ownerSearchString: '' })}>{rowData.AssignedTo && rowData.AssignedTo.length > 0 ? rowData.AssignedTo[0].Title : ""}</span>
     <Overlay
       show={this.state.showOwnerPopover}
       target={this.state.ownerTarget}
@@ -273,12 +217,12 @@ ownerTemplate(rowData, column){
       onHide={this.onOwnerPopoverHide}
       rootClose
     >
-         <Popover id="popover-trigger-click">
+    <Popover id="popover-trigger-click">
       <div className="test">
       <input id="ownerSearchId" type="text" placeholder="Person Name" onChange={this.onOwnerChange.bind(this)}/>
         { 
-          owners.map(function(item){
-              return <div style = {{ padding:'5px 0px 5px 0px', cursor: 'pointer'}}>{item.name}</div>
+          owners.map(function(item, index){
+              return <div key={index} style = {{ padding:'5px 0px 5px 0px', cursor: 'pointer'}}>{item.TeamMember.Title}</div>
           }) 
         }
       </div> 
@@ -286,24 +230,43 @@ ownerTemplate(rowData, column){
     </Overlay>
   </div>)
 }
-
+managerTemplate(rowData, column){
+  let managers= this.props.owners;
+  let managerSearchString = this.state.managerSearchString.trim().toLowerCase();
+  if(managerSearchString.length > 0){
+    managers = this.props.owners.filter(function(item){
+        return item.TeamMember.Title.toLowerCase().match(managerSearchString);
+    });
+  }
+ return(
+    <div>
+     <span style={{marginLeft:"5px"}} onClick={(e) => this.setState({ managerTarget: e.target, showManagerPopover: !this.state.showManagerPopover , managerSearchString: '' })}>{rowData.Managers && rowData.Managers.length > 0 ? rowData.Managers[0].Title : ""}</span>
+    <Overlay
+      show={this.state.showManagerPopover}
+      target={this.state.managerTarget}
+      placement="bottom"
+      container={this}
+      containerPadding={20}
+      onHide={this.onManagerPopoverHide}
+      rootClose
+    >
+    <Popover id="popover-trigger-click">
+      <div>
+      <input id="managerSearchId" type="text" placeholder="Person Name" onChange={this.onManagerChange.bind(this)}/>
+        { 
+          managers.map(function(item, index){
+              return <div key={index} style = {{ padding:'5px 0px 5px 0px', cursor: 'pointer'}}>{item.TeamMember.Title}</div>
+          }) 
+        }
+      </div> 
+    </Popover>
+    </Overlay>
+  </div>)
+}
 statusTemplate(rowData, column) {
-  // const popoverFocus = (
-  //   <Popover id="popover-trigger-focus">
-  //     <div>
-  //       {
-  //         this.state.colorCodes.map(item=>{
-  //           return (<div style={{ backgroundColor: item.colorCode,height:'2em', textAlign: 'center', marginBottom:'5px', padding:'3px'}} onClick={(e) => alert(rowData.id)}>
-  //               <span>{item.status}</span>
-  //           </div>)
-  //         })
-  //       }
-  //     </div>
-  //   </Popover>
-  // );
   
   let cellColor = "";
-  switch (rowData["status"]) {
+  switch (rowData["Status"]) {
     case "Done":
       cellColor = "#00c875";
       break;
@@ -320,16 +283,9 @@ statusTemplate(rowData, column) {
       cellColor = "";
       break;
   }
-  // return (
-  //   <OverlayTrigger trigger="click" placement="bottom" overlay={popoverFocus}>
-  //   {/* <Button>Focus</Button> */}
-  //     <div style={{backgroundColor: cellColor, height: '2.5em', width:'100%', textAlign: 'center'}}>{rowData["status"]}</div>
-  //   </OverlayTrigger>
-  // );
-
-  return(
+   return(
     <div>      
-      <div onClick={(e) => this.setState({ statusTarget: e.target, showStatusPopover: !this.state.showStatusPopover })} style={{backgroundColor: cellColor, height: '2.5em', width:'100%', textAlign: 'center'}}>{rowData["status"]}</div>
+      <div onClick={(e) => this.setState({ statusTarget: e.target, showStatusPopover: !this.state.showStatusPopover })} style={{backgroundColor: cellColor, height: '2.5em', width:'100%', textAlign: 'center'}}>{rowData["Status"]}</div>
       
     <Overlay
       show={this.state.showStatusPopover}
@@ -343,9 +299,9 @@ statusTemplate(rowData, column) {
       <Popover id="popover-trigger-focus">
         <div>
           {
-            this.state.colorCodes.map(item=>{
-              return (<div style={{ backgroundColor: item.colorCode,height:'2em', textAlign: 'center', marginBottom:'5px', padding:'3px'}} onClick={(e) => alert(rowData.id)}>
-                  <span>{item.status}</span>
+            this.props.colorCodes.map((item,index)=>{
+              return (<div key={index} style={{ backgroundColor: item.Color_x0020_Code,height:'2em', textAlign: 'center', marginBottom:'5px', padding:'3px'}} onClick={(e) => alert(item)}>
+                  <span>{item.Status}</span>
               </div>)
             })
           }
@@ -355,12 +311,16 @@ statusTemplate(rowData, column) {
   </div>)
 }
 
+dueDateTemplate(rowData, column){
+  let date= new Date(rowData.DueDate);
+  return(<span>{date.toDateString()}</span>)
+}
+
   taskEditor(props) {
     return <InputText type="text" value={props.rowData.title} />;
   }
   private _menuButtonElement: HTMLElement | null;
   public render(): React.ReactElement<IBaseTableProps> {
-  
     var components: JSX.Element[] = [];
     return (
       <DataTable
@@ -371,28 +331,39 @@ statusTemplate(rowData, column) {
         selection={this.state.selectedItems}
         onSelectionChange={e => this.setState({ selectedItems: e.data })}
       >
-        <Column selectionMode="multiple" style={{ width: "2em" }} />
-        <Column rowReorder={true} style={{ width: "2em" }} />
-        <Column field="title" header="Task" editor={this.taskEditor} />
+        <Column columnKey="checkbox" selectionMode="multiple" style={{ width: "2em" }} />
+        <Column columnKey="rowIcon" rowReorder={true} style={{ width: "2em" }} />
+        <Column field="Title" header="Task Name" editor={this.taskEditor} />
         <Column
-          field="owner"
-          header="Owner"
-          body={this.ownerTemplate}
-          style={{ textAlign: 'center'}}
+          field="DueDate"
+          header="Due Date"
+          body={this.dueDateTemplate}
+          style={{ padding: 0 }}
         />
         <Column
-          field="status"
+          field="AssignedTo[0].Title"
+          header="Owner"
+          body={this.ownerTemplate}         
+        />
+        <Column
+          field="Status"
           header="Status"
           body={this.statusTemplate}
           style={{ padding: 0 }}
         />
         <Column
-          field="tag"
+          field="Tags"
           header="Tags"
           body={this.tagsTemplate}
           style={{ padding: 0 }}
         />
-        <Column field="priority" header="Priority" />
+        <Column
+          field="Managers[0].Title"
+          header="Managers"
+          body={this.managerTemplate}
+          style={{ padding: 0 }}
+        />
+        <Column field="Priority" header="Priority" />
       </DataTable>
 
       //   <div>
@@ -646,30 +617,7 @@ statusTemplate(rowData, column) {
         //alert("Priority "+text+" saved succefully!!!");
       });
   }
-
-
-  private getColorCodes(): void {
-    
-    // if(props.list === "")
-    //   return;
-    //Get all list items
-    sp.web.lists.getById('f99f45bf-4e40-4c70-823f-d25818442853')
-      .items
-      .select("Title", "Status", "Color_x0020_Code")
-      .get()
-      .then((response) => {
-        let colors = [];
-        response.forEach(element => {
-          colors.push({
-            status:element.Status,
-            colorCode: element.Color_x0020_Code
-          })
-        });
-        this.setState({
-          colorCodes: colors
-        });
-      });
-  }
+  
   //css starts
   HideSpan = {
     display: "none" as "none"

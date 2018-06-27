@@ -16,16 +16,21 @@ export default class TaskManager extends React.Component<ITaskManagerProps, ITas
     super(props);
     this.state = {
       fields: [],
-      items: []
+      items: [],
+      colorCodes: [],
+      owners: []
     }
   }
   public render(): React.ReactElement<ITaskManagerProps> {
+    console.log('this.state.items', this.state.items);
     return (
       <div>
       <Activities />
       <BaseTable 
         fields = {this.state.fields}
         items = {this.state.items}
+        colorCodes = {this.state.colorCodes}
+        owners = {this.state.owners}
         onRefreshItems= {this._onRefreshItems.bind(this)}
       />
 
@@ -36,6 +41,8 @@ export default class TaskManager extends React.Component<ITaskManagerProps, ITas
   public componentDidMount() {
     this._getListFields(this.props);
     this._getListItems(this.props);
+    this._getColorCodes();
+    this._getOwners();
   }
   public componentWillReceiveProps(nextProps) {
     this._getListFields(nextProps);
@@ -49,7 +56,6 @@ export default class TaskManager extends React.Component<ITaskManagerProps, ITas
     sp.web.lists.getById(props.list)
       .fields.filter("Hidden eq false and ReadOnlyField eq false and Group eq 'Custom Columns'")
       .get().then((response: ISpField[]) => {
-        console.log(response);
         this.setState({
           fields: response
         });
@@ -63,13 +69,34 @@ export default class TaskManager extends React.Component<ITaskManagerProps, ITas
       return;
     //Get all list items
     sp.web.lists.getById(props.list)
-      .items
-      .select("ID","Title", "AssignedTo/Title", "AssignedTo/ID", "DueDate", "Status","Priority").expand("AssignedTo")
+      .items.filter("Projects/ID eq 1")
+      .select("ID","Title", "AssignedTo/Title", "AssignedTo/ID", "Managers/Title", "Managers/ID","DueDate", "Status","Priority","Tags").expand("AssignedTo", "Managers")
       .get()
       .then((response) => {
-        console.log(response);
         this.setState({
           items: response
+        });
+      });
+  }
+  private _getColorCodes(): void {
+    sp.web.lists.getById('f99f45bf-4e40-4c70-823f-d25818442853')
+      .items
+      .select("Title", "Status", "Color_x0020_Code")
+      .get()
+      .then((response) => {
+       this.setState({
+          colorCodes: response
+        });
+      });
+  }
+  private _getOwners(): void {
+    sp.web.lists.getById('486f4cff-5602-413e-b471-e4765aff56a3')
+      .items.filter("Project/ID eq 1 and Status eq 'Active'")
+      .select("ProjectID", "TeamMember/ID","TeamMember/Title","Status").expand("TeamMember")
+      .get()
+      .then((response) => {
+       this.setState({
+          owners: response
         });
       });
   }
