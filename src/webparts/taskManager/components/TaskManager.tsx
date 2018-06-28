@@ -81,7 +81,7 @@ export default class TaskManager extends React.Component<ITaskManagerProps, ITas
   private _getColorCodes(): void {
     sp.web.lists.getById('f99f45bf-4e40-4c70-823f-d25818442853')
       .items
-      .select("Title", "Status", "Color_x0020_Code")
+      .select("ID", "Title", "Status", "Color_x0020_Code")
       .get()
       .then((response) => {
        this.setState({

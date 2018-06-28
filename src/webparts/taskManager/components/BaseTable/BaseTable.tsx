@@ -1,6 +1,6 @@
 import * as React from "react";
 import { IBaseTableProps } from "./IBaseTableProps";
-import styles from "./BaseTable.module.scss";
+//import styles from "./BaseTable.module.scss";
 //import styles from './BaseTable.module.scss';
 import * as jQuery from "jquery";
 import * as bootstrap from "bootstrap";
@@ -9,6 +9,7 @@ import { SPComponentLoader } from "@microsoft/sp-loader";
 import { escape } from "@microsoft/sp-lodash-subset";
 
 import { sp, ItemAddResult } from "@pnp/sp";
+import { find } from "lodash";
 
 import GunttChart from ".././GunttChart/GunttChart";
 const boldText = {
@@ -16,12 +17,18 @@ const boldText = {
 };
 // import Popover from 'react-simple-popover';
 import { DefaultButton, IButtonProps } from "office-ui-fabric-react/lib/Button";
+// import { Callout } from 'office-ui-fabric-react/lib/Callout';
+// import { createRef } from 'office-ui-fabric-react/lib/Utilities';
+// import { getTheme, FontWeights, mergeStyleSets } from 'office-ui-fabric-react/lib/Styling';
+import { Link } from 'office-ui-fabric-react/lib/Link';
 import pnp from "sp-pnp-js";
 import { DataTable } from "primereact/components/datatable/DataTable";
 import { Column } from "primereact/components/column/Column";
 import { Row } from "primereact/components/row/Row";
 import { InputText } from "primereact/components/inputtext/InputText";
 import { OverlayTrigger, Popover, Overlay, Button, ButtonToolbar } from "react-bootstrap";
+import { inputProperties } from "@uifabric/utilities";
+
 export interface PopOverState {
   open: boolean;
   show: boolean;
@@ -35,13 +42,15 @@ export interface PopOverState {
   showOwnerPopover: boolean;
   showManagerPopover: boolean;
   showTagPopover: boolean;
+  showAddEditStatus:boolean;
   itemID: number;
   items:ISpTaskItem[];
   //items: { id :number, title: string; owner: string; status: string; priority: string, tag:string }[];
-  //colorCodes:ISpColorCode[];
+  colorCodes:ISpColorCode[];
+  colors:{ ID :number, Color: string;}[];
   // ownerList:{id:number; name:string}[];
-  // ownerList:ISpOwner[];
-  // managerList:ISpOwner[];
+  ownerList:ISpOwner[];
+  managerList:ISpOwner[];
   ownerSearchString : string;
   managerSearchString : string;
   tagSearchString : string;
@@ -58,6 +67,7 @@ export default class BaseTable extends React.Component<
   IBaseTableProps,
   PopOverState
 > {
+  
   constructor(props) {
     super(props);
     SPComponentLoader.loadCss(
@@ -82,6 +92,7 @@ export default class BaseTable extends React.Component<
       showOwnerPopover: false,
       showManagerPopover: false,
       showTagPopover:false,
+      showAddEditStatus: false,
       target:'',
       statusTarget:'',
       ownerTarget:'',
@@ -89,10 +100,10 @@ export default class BaseTable extends React.Component<
       tagTarget:'',
       itemID: 0,
       items: [],
-      //colorCodes:[],
+      colorCodes:[],
       selectedItems: [],
-      //ownerList:[],
-     // managerList:[],
+      ownerList:[],
+      managerList:[],
       tagList:[{
           id:1,
           name:'#abcd'   
@@ -111,7 +122,20 @@ export default class BaseTable extends React.Component<
       ],
       ownerSearchString: '',
       managerSearchString: '',
-      tagSearchString: ''
+      tagSearchString: '',
+      colors : [{
+        ID:1,
+        Color:'blue'
+      },
+      {
+        ID:2,
+        Color:'green'
+      },
+      {
+        ID:3,
+        Color:'red'
+      }
+    ]
     };
     this.statusTemplate = this.statusTemplate.bind(this);
     this.ownerTemplate = this.ownerTemplate.bind(this);
@@ -122,13 +146,17 @@ export default class BaseTable extends React.Component<
     this.onOwnerPopoverHide = this.onOwnerPopoverHide.bind(this);
     this.onManagerPopoverHide = this.onManagerPopoverHide.bind(this);
     this.onTagPopoverHide = this.onTagPopoverHide.bind(this);
+    this.onStatusPopoverHide = this.onStatusPopoverHide.bind(this);
     this.dueDateTemplate = this.dueDateTemplate.bind(this);
+    this.onStatusAddEdit = this.onStatusAddEdit.bind(this);
+   // this.handleChangeStatus = this.handleChangeStatus.bind(this, item);
+    this.onStatusApply = this.onStatusApply.bind(this);
   } 
 componentWillReceiveProps(nextProps, prevProps){
 // TODO :Need to find better approch
-  // this.setState({items: this.props.items, colorCodes:this.props.colorCodes, ownerList: this.props.owners, managerList: this.props.owners})
-  if(nextProps.items.length > 0 && nextProps.items.length != this.state.items.length)
-      this.setState({items: this.props.items })
+  this.setState({items: this.props.items, colorCodes:this.props.colorCodes, ownerList: this.props.owners, managerList: this.props.owners})
+  // if(nextProps.items.length > 0 && nextProps.items.length != this.state.items.length)
+  //     this.setState({items: this.props.items })
 }
   private handleLoginClick(): void {
     jQuery("table").show();
@@ -136,6 +164,7 @@ componentWillReceiveProps(nextProps, prevProps){
   private handleLogoutClick(): void {
     jQuery("table").hide();
   }
+
 
 onOwnerChange(e){
   this.setState({ownerSearchString:e.target.value});
@@ -161,6 +190,13 @@ onTagPopoverHide = e => {
   if(e.target.id !="tagSearchId")
   this.setState({ showTagPopover: false })
 };
+
+onStatusPopoverHide = e => {
+  if(e.target.id !="statusAddEdit" && e.target.className !="statusPopover" && e.target.id !="statusApply"){
+    this.setState({ showStatusPopover: false, showAddEditStatus: !this.state.showAddEditStatus })
+  } 
+};
+
 tagsTemplate(rowData, column){
   let tags= this.state.tagList;
   let tagSearchString = this.state.tagSearchString.trim().toLowerCase();
@@ -198,10 +234,10 @@ tagsTemplate(rowData, column){
 }
 
 ownerTemplate(rowData, column){
-  let owners= this.props.owners;
+  let owners= this.state.ownerList;
   let ownerSearchString = this.state.ownerSearchString.trim().toLowerCase();
   if(ownerSearchString.length > 0){
-   owners = this.props.owners.filter(function(item){
+   owners = this.state.ownerList.filter(function(item){
         return item.TeamMember.Title.toLowerCase().match(ownerSearchString);
     });
   }
@@ -231,10 +267,10 @@ ownerTemplate(rowData, column){
   </div>)
 }
 managerTemplate(rowData, column){
-  let managers= this.props.owners;
+  let managers= this.state.managerList;
   let managerSearchString = this.state.managerSearchString.trim().toLowerCase();
   if(managerSearchString.length > 0){
-    managers = this.props.owners.filter(function(item){
+    managers = this.state.managerList.filter(function(item){
         return item.TeamMember.Title.toLowerCase().match(managerSearchString);
     });
   }
@@ -263,8 +299,68 @@ managerTemplate(rowData, column){
     </Overlay>
   </div>)
 }
+
+onStatusAddEdit(){
+  // let colors = this.state.colorCodes;
+  // colors.push({
+  //   ID : 1111111111,
+  //   Status: "",
+  //   Title:"",
+  //   Color_x0020_Code:""
+  // });
+  // this.setState({showAddEditStatus : !this.state.showAddEditStatus, colorCodes : colors});
+  this.setState({showAddEditStatus : !this.state.showAddEditStatus});
+}
+
+handleChangeStatus(item, e){
+ let colorCodes = this.state.colorCodes;
+  let color = find(colorCodes, { 'ID': item.ID });
+  color.Status = e.target.value;
+  this.setState({colorCodes : colorCodes});
+}
+
+onStatusApply(e){
+  this.setState({showAddEditStatus : !this.state.showAddEditStatus});
+}
 statusTemplate(rowData, column) {
-  
+let statusPopOver;
+  if(!this.state.showAddEditStatus){
+    statusPopOver = (
+      <div >
+      {
+        this.state.colorCodes.map((item,index)=>{
+          return (
+          <div key={index} style={{ backgroundColor: item.Color_x0020_Code,height:'2em', textAlign: 'center', marginBottom:'5px', padding:'3px'}} onClick={(e) => alert(item)}>
+              <span>{item.Status}</span>
+          </div>)
+        })
+      }
+      <Button id="statusAddEdit" bsStyle="link" onClick={this.onStatusAddEdit}>Add/Edit Labels</Button>
+    </div>
+    )
+  }else {
+    statusPopOver= (
+      <div>
+          <div>
+          {
+            this.state.colorCodes.map((item,index)=>{
+              return (
+                  <input key={index} style={{margin:"2px", borderColor:item.Color_x0020_Code}}
+                    className="statusPopover"
+                    type="text"
+                    value={item.Status}
+                    // onChange={this.handleChangeStatus(item)}
+                    onChange={(e) => this.handleChangeStatus(item, e)}
+                  />         
+              )
+            })
+          }           
+        </div>
+        <Button id="statusApply" bsStyle="link" onClick={this.onStatusApply}>Apply</Button>
+      </div>
+    )
+  }
+     
   let cellColor = "";
   switch (rowData["Status"]) {
     case "Done":
@@ -293,23 +389,16 @@ statusTemplate(rowData, column) {
       placement="bottom"
       container={this}
       containerPadding={20}
-      onHide={() => this.setState({ showStatusPopover: false })}
+      onHide={this.onStatusPopoverHide}
       rootClose
     >
       <Popover id="popover-trigger-focus">
-        <div>
-          {
-            this.props.colorCodes.map((item,index)=>{
-              return (<div key={index} style={{ backgroundColor: item.Color_x0020_Code,height:'2em', textAlign: 'center', marginBottom:'5px', padding:'3px'}} onClick={(e) => alert(item)}>
-                  <span>{item.Status}</span>
-              </div>)
-            })
-          }
-        </div>
+        { statusPopOver }
       </Popover>
     </Overlay>
   </div>)
-}
+
+  }
 
 dueDateTemplate(rowData, column){
   let date= new Date(rowData.DueDate);
@@ -319,7 +408,7 @@ dueDateTemplate(rowData, column){
   taskEditor(props) {
     return <InputText type="text" value={props.rowData.title} />;
   }
-  private _menuButtonElement: HTMLElement | null;
+ // private _menuButtonElement: HTMLElement | null;
   public render(): React.ReactElement<IBaseTableProps> {
     var components: JSX.Element[] = [];
     return (
