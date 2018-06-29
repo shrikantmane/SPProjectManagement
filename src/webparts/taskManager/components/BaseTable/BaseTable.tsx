@@ -62,7 +62,9 @@ export interface PopOverState {
     priority: string;
   }[];
   currentItem: any;
-  projectId: number
+  projectId: number;
+  newItem:string;
+  showCreateNewItem: boolean;
 }
 
 export default class BaseTable extends React.Component<
@@ -139,7 +141,9 @@ export default class BaseTable extends React.Component<
       }
     ],
     currentItem:{},
-    projectId: 1
+    projectId: 1,
+    newItem:"",
+    showCreateNewItem: true
     };
     this.statusTemplate = this.statusTemplate.bind(this);
     this.ownerTemplate = this.ownerTemplate.bind(this);
@@ -401,10 +405,48 @@ dueDateTemplate(rowData, column){
   taskEditor(props) {
     return <InputText type="text" value={props.rowData.title} />;
   }
+
+  onChangeItem(e){
+    this.setState({newItem : e.target.value});
+  }
+
+  onAddItem(e){
+        sp.web.lists.getByTitle('NonPeriodicProjects').items.add({
+          Title: this.state.newItem,
+          ProjectsId: this.state.projectId
+      }).then((iar: ItemAddResult) => {
+        this.setState({showCreateNewItem : true, newItem: ""});
+        this._getListItems(this.props.list); 
+      });
+  }
+
+  // onCancelItem(e){
+  //   this.setState({showCreateNewItem : true, newItem: ""});
+  // }
+
+  onCreateNewClick(e){
+    this.setState({showCreateNewItem : false, newItem: ""});
+  }
  // private _menuButtonElement: HTMLElement | null;
   public render(): React.ReactElement<IBaseTableProps> {
     var components: JSX.Element[] = [];
+    let addItemDiv;
+    if(this.state.showCreateNewItem){
+      addItemDiv= (
+        <Button bsStyle="link" onClick={(e) => this.onCreateNewClick(this)}>Create New Row</Button>
+      )
+    }else{
+      addItemDiv= (
+        <div>
+          <input type="text" placeholder="Create New Task" value={this.state.newItem} style={{width:"91%", padding: "3px 0px 6px 0px", marginTop:"3px"}} onChange={(e)=> this.onChangeItem(e)}/>
+          <Button onClick={(e) => this.onAddItem(e)}>Add</Button>
+          {/* <Button onClick={(e) => this.onCancelItem(this)}>Cancel</Button> */}
+        </div>
+      )
+    }
+   
     return (
+      <div>
       <DataTable
         value={this.state.items}
         scrollable={true}
@@ -448,7 +490,11 @@ dueDateTemplate(rowData, column){
           style={{ padding: 0 }}
         /> */}
         <Column field="Priority" header="Priority" style={{ width: "6em" }}/>
-      </DataTable>      
+      </DataTable>   
+        <div>
+          {addItemDiv}         
+        </div>
+      </div>   
     );
   }
 
