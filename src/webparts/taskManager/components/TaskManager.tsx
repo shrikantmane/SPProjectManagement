@@ -22,33 +22,28 @@ export default class TaskManager extends React.Component<ITaskManagerProps, ITas
     }
   }
   public render(): React.ReactElement<ITaskManagerProps> {
-    console.log('this.state.items', this.state.items);
     return (
       <div>
       <Activities />
       <div className="BaseTableOuterContainer">
-        <BaseTable 
-          fields = {this.state.fields}
-          items = {this.state.items}
-          colorCodes = {this.state.colorCodes}
-          owners = {this.state.owners}
-          onRefreshItems= {this._onRefreshItems.bind(this)}
-        />
-      </div>
-
+      <BaseTable 
+        fields = {this.state.fields}
+        list= {this.props.list}
+      />
+        </div>
       </div>
     );
   }
 
   public componentDidMount() {
-    this._getListFields(this.props);
-    this._getListItems(this.props);
-    this._getColorCodes();
-    this._getOwners();
+  //  this._getListFields(this.props);
+   // this._getListItems(this.props);
+    // this._getColorCodes();
+    // this._getOwners();
   }
   public componentWillReceiveProps(nextProps) {
-    this._getListFields(nextProps);
-    this._getListItems(nextProps);
+   // this._getListFields(nextProps);
+   // this._getListItems(nextProps);
   }
   private _getListFields(props): void {
     
@@ -72,7 +67,7 @@ export default class TaskManager extends React.Component<ITaskManagerProps, ITas
     //Get all list items
     sp.web.lists.getById(props.list)
       .items.filter("Projects/ID eq 1")
-      .select("ID","Title", "AssignedTo/Title", "AssignedTo/ID", "Managers/Title", "Managers/ID","DueDate", "Status","Priority","Tags").expand("AssignedTo", "Managers")
+      .select("ID","Title", "AssignedTo/Title", "AssignedTo/ID", "Managers/Title", "Managers/ID","DueDate", "Status","Status0/Color_x0020_Code", "Status0/ID", "Status0/Status","Priority","Tags").expand("AssignedTo", "Managers", "Status0")
       .get()
       .then((response) => {
         this.setState({
@@ -80,28 +75,28 @@ export default class TaskManager extends React.Component<ITaskManagerProps, ITas
         });
       });
   }
-  private _getColorCodes(): void {
-    sp.web.lists.getById('f99f45bf-4e40-4c70-823f-d25818442853')
-      .items
-      .select("ID", "Title", "Status", "Color_x0020_Code")
-      .get()
-      .then((response) => {
-       this.setState({
-          colorCodes: response
-        });
-      });
-  }
-  private _getOwners(): void {
-    sp.web.lists.getById('486f4cff-5602-413e-b471-e4765aff56a3')
-      .items.filter("Project/ID eq 1 and Status eq 'Active'")
-      .select("ProjectID", "TeamMember/ID","TeamMember/Title","Status").expand("TeamMember")
-      .get()
-      .then((response) => {
-       this.setState({
-          owners: response
-        });
-      });
-  }
+  // private _getColorCodes(): void {
+  //   sp.web.lists.getById('f99f45bf-4e40-4c70-823f-d25818442853')
+  //     .items
+  //     .select("ID", "Title", "Status", "Color_x0020_Code")
+  //     .get()
+  //     .then((response) => {
+  //      this.setState({
+  //         colorCodes: response
+  //       });
+  //     });
+  // }
+  // private _getOwners(): void {
+  //   sp.web.lists.getById('486f4cff-5602-413e-b471-e4765aff56a3')
+  //     .items.filter("Project/ID eq 1 and Status eq 'Active'")
+  //     .select("ProjectID", "TeamMember/ID","TeamMember/Title","Status").expand("TeamMember")
+  //     .get()
+  //     .then((response) => {
+  //      this.setState({
+  //         owners: response
+  //       });
+  //     });
+  // }
   private _onRefreshItems(): void {
     this._getListItems(this.props);
   }

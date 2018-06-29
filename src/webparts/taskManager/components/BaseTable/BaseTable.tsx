@@ -1,6 +1,6 @@
 import * as React from "react";
 import { IBaseTableProps } from "./IBaseTableProps";
-import styles from "./BaseTable.module.scss";
+//import styles from "./BaseTable.module.scss";
 //import styles from './BaseTable.module.scss';
 import * as jQuery from "jquery";
 import * as bootstrap from "bootstrap";
@@ -9,6 +9,7 @@ import { SPComponentLoader } from "@microsoft/sp-loader";
 import { escape } from "@microsoft/sp-lodash-subset";
 
 import { sp, ItemAddResult } from "@pnp/sp";
+import { find } from "lodash";
 
 import GunttChart from ".././GunttChart/GunttChart";
 const boldText = {
@@ -16,12 +17,18 @@ const boldText = {
 };
 // import Popover from 'react-simple-popover';
 import { DefaultButton, IButtonProps } from "office-ui-fabric-react/lib/Button";
+// import { Callout } from 'office-ui-fabric-react/lib/Callout';
+// import { createRef } from 'office-ui-fabric-react/lib/Utilities';
+// import { getTheme, FontWeights, mergeStyleSets } from 'office-ui-fabric-react/lib/Styling';
+import { Link } from 'office-ui-fabric-react/lib/Link';
 import pnp from "sp-pnp-js";
 import { DataTable } from "primereact/components/datatable/DataTable";
 import { Column } from "primereact/components/column/Column";
 import { Row } from "primereact/components/row/Row";
 import { InputText } from "primereact/components/inputtext/InputText";
 import { OverlayTrigger, Popover, Overlay, Button, ButtonToolbar } from "react-bootstrap";
+import { inputProperties } from "@uifabric/utilities";
+
 export interface PopOverState {
   open: boolean;
   show: boolean;
@@ -35,17 +42,18 @@ export interface PopOverState {
   showOwnerPopover: boolean;
   showManagerPopover: boolean;
   showTagPopover: boolean;
+  showAddEditStatus:boolean;
   itemID: number;
   items:ISpTaskItem[];
   //items: { id :number, title: string; owner: string; status: string; priority: string, tag:string }[];
-  //colorCodes:ISpColorCode[];
+  colorCodes:ISpColorCode[];
+  colors:{ ID :number, Color: string;}[];
   // ownerList:{id:number; name:string}[];
-  // ownerList:ISpOwner[];
-  // managerList:ISpOwner[];
+  ownerList:ISpOwner[];
+  managerList:ISpOwner[];
   ownerSearchString : string;
   managerSearchString : string;
   tagSearchString : string;
-  currentItem : any;
   tagList:{id:number; name:string}[];
   selectedItems: {
     title: string;
@@ -53,12 +61,15 @@ export interface PopOverState {
     status: string;
     priority: string;
   }[];
+  currentItem: any;
+  projectId: number
 }
 
 export default class BaseTable extends React.Component<
   IBaseTableProps,
   PopOverState
 > {
+  
   constructor(props) {
     super(props);
     SPComponentLoader.loadCss(
@@ -83,6 +94,7 @@ export default class BaseTable extends React.Component<
       showOwnerPopover: false,
       showManagerPopover: false,
       showTagPopover:false,
+      showAddEditStatus: false,
       target:'',
       statusTarget:'',
       ownerTarget:'',
@@ -90,10 +102,10 @@ export default class BaseTable extends React.Component<
       tagTarget:'',
       itemID: 0,
       items: [],
-      //colorCodes:[],
+      colorCodes:[],
       selectedItems: [],
-      //ownerList:[],
-     // managerList:[],
+      ownerList:[],
+      managerList:[],
       tagList:[{
           id:1,
           name:'#abcd'   
@@ -113,7 +125,21 @@ export default class BaseTable extends React.Component<
       ownerSearchString: '',
       managerSearchString: '',
       tagSearchString: '',
-      currentItem:{}
+      colors : [{
+        ID:1,
+        Color:'blue'
+      },
+      {
+        ID:2,
+        Color:'green'
+      },
+      {
+        ID:3,
+        Color:'red'
+      }
+    ],
+    currentItem:{},
+    projectId: 1
     };
     this.statusTemplate = this.statusTemplate.bind(this);
     this.ownerTemplate = this.ownerTemplate.bind(this);
@@ -124,14 +150,18 @@ export default class BaseTable extends React.Component<
     this.onOwnerPopoverHide = this.onOwnerPopoverHide.bind(this);
     this.onManagerPopoverHide = this.onManagerPopoverHide.bind(this);
     this.onTagPopoverHide = this.onTagPopoverHide.bind(this);
+    this.onStatusPopoverHide = this.onStatusPopoverHide.bind(this);
     this.dueDateTemplate = this.dueDateTemplate.bind(this);
+    this.onStatusAddEdit = this.onStatusAddEdit.bind(this);
+   // this.handleChangeStatus = this.handleChangeStatus.bind(this, item);
+    this.onStatusApply = this.onStatusApply.bind(this);
   } 
-componentWillReceiveProps(nextProps, prevProps){
-// TODO :Need to find better approch
-  // this.setState({items: this.props.items, colorCodes:this.props.colorCodes, ownerList: this.props.owners, managerList: this.props.owners})
-  if(nextProps.items.length > 0 && nextProps.items.length != this.state.items.length)
-      this.setState({items: this.props.items })
-}
+// componentWillReceiveProps(nextProps, prevProps){
+// // TODO :Need to find better approch
+//  // this.setState({items: this.props.items, colorCodes:this.props.colorCodes, ownerList: this.props.owners, managerList: this.props.owners})
+//   // if(nextProps.items.length > 0 && nextProps.items.length != this.state.items.length)
+//     this.setState({items: this.props.items })
+// }
   private handleLoginClick(): void {
     jQuery("table").show();
   }
@@ -139,6 +169,11 @@ componentWillReceiveProps(nextProps, prevProps){
     jQuery("table").hide();
   }
 
+componentDidMount(){
+  this._getColorCodes();
+  this._getOwners();
+  this._getListItems(this.props.list);
+}
 onOwnerChange(e){
   this.setState({ownerSearchString:e.target.value});
 }
@@ -163,6 +198,13 @@ onTagPopoverHide = e => {
   if(e.target.id !="tagSearchId")
   this.setState({ showTagPopover: false })
 };
+
+onStatusPopoverHide = e => {
+  if(e.target.id !="statusAddEdit" && e.target.className !="statusPopover" && e.target.id !="statusApply"){
+    this.setState({ showStatusPopover: false, showAddEditStatus: false })
+  } 
+};
+
 tagsTemplate(rowData, column){
   let tags= this.state.tagList;
   let tagSearchString = this.state.tagSearchString.trim().toLowerCase();
@@ -200,10 +242,10 @@ tagsTemplate(rowData, column){
 }
 
 ownerTemplate(rowData, column){
-  let owners= this.props.owners;
+  let owners= this.state.ownerList;
   let ownerSearchString = this.state.ownerSearchString.trim().toLowerCase();
   if(ownerSearchString.length > 0){
-   owners = this.props.owners.filter(function(item){
+   owners = this.state.ownerList.filter(function(item){
         return item.TeamMember.Title.toLowerCase().match(ownerSearchString);
     });
   }
@@ -233,10 +275,10 @@ ownerTemplate(rowData, column){
   </div>)
 }
 managerTemplate(rowData, column){
-  let managers= this.props.owners;
+  let managers= this.state.managerList;
   let managerSearchString = this.state.managerSearchString.trim().toLowerCase();
   if(managerSearchString.length > 0){
-    managers = this.props.owners.filter(function(item){
+    managers = this.state.managerList.filter(function(item){
         return item.TeamMember.Title.toLowerCase().match(managerSearchString);
     });
   }
@@ -265,29 +307,74 @@ managerTemplate(rowData, column){
     </Overlay>
   </div>)
 }
+
+onStatusAddEdit(){
+  // let colors = this.state.colorCodes;
+  // colors.push({
+  //   ID : 1111111111,
+  //   Status: "",
+  //   Title:"",
+  //   Color_x0020_Code:""
+  // });
+  // this.setState({showAddEditStatus : !this.state.showAddEditStatus, colorCodes : colors});
+  this.setState({showAddEditStatus : !this.state.showAddEditStatus});
+}
+
+handleChangeStatus(item, e){
+ let colorCodes = this.state.colorCodes;
+  let color = find(colorCodes, { 'ID': item.ID });
+  color.Status = e.target.value;
+  this.setState({colorCodes : colorCodes});
+}
+
+onStatusApply(e){
+  this.setState({showAddEditStatus : !this.state.showAddEditStatus});
+  this.updateStatus();
+ // this._updateTaskStatus();
+}
 statusTemplate(rowData, column) {
-  
-  let cellColor = "";
-  switch (rowData["Status"]) {
-    case "Done":
-      cellColor = "#00c875";
-      break;
-    case "Deployed":
-      cellColor = "#ff158a";
-      break;     
-    case "In Process":
-      cellColor = "#579bfc";
-      break;
-    case "Not Started":
-      cellColor = "#fdab3d";
-      break;
-    default:
-      cellColor = "";
-      break;
+let status = rowData.Status0 ? rowData.Status0.Status : "";
+let color = rowData.Status0 ? rowData.Status0.Color_x0020_Code: "";   
+let statusPopOver;
+  if(!this.state.showAddEditStatus){
+    statusPopOver = (
+      <div >
+      {
+        this.state.colorCodes.map((item,index)=>{
+          return (
+          <div key={index} style={{ backgroundColor: item.Color_x0020_Code,height:'2em', textAlign: 'center', marginBottom:'5px', padding:'3px'}} onClick={(e) => this._updateTaskStatus(item)}>
+              <span>{item.Status}</span>
+          </div>)
+        })
+      }
+      <Button id="statusAddEdit" bsStyle="link" onClick={this.onStatusAddEdit}>Add/Edit Labels</Button>
+    </div>
+    )
+  }else {
+    statusPopOver= (
+      <div>
+          <div>
+          {
+            this.state.colorCodes.map((item,index)=>{
+              return (
+                  <input key={index} style={{margin:"2px", borderColor:item.Color_x0020_Code}}
+                    className="statusPopover"
+                    type="text"
+                    value={item.Status}
+                    onChange={(e) => this.handleChangeStatus(item, e)}
+                  />         
+              )
+            })
+          }           
+        </div>
+        <Button id="statusApply" bsStyle="link" onClick={this.onStatusApply}>Apply</Button>
+      </div>
+    )
   }
+     
    return(
     <div>      
-      <div onClick={(e) => this.setState({currentItem: rowData, statusTarget: e.target, showStatusPopover: !this.state.showStatusPopover })} style={{backgroundColor: cellColor,color: '#fff',  paddingTop: 7, height: '2.6em', width:'100%', textAlign: 'center'}}>{rowData["Status"]}</div>
+      <div onClick={(e) => this.setState({ currentItem:rowData, statusTarget: e.target, showStatusPopover: !this.state.showStatusPopover })} style={{backgroundColor: color, height: '2.5em', width:'100%', textAlign: 'center'}}>{status}</div>
       
     <Overlay
       show={this.state.showStatusPopover}
@@ -295,23 +382,16 @@ statusTemplate(rowData, column) {
       placement="bottom"
       container={this}
       containerPadding={20}
-      onHide={() => this.setState({ showStatusPopover: false })}
+      onHide={this.onStatusPopoverHide}
       rootClose
     >
       <Popover id="popover-trigger-focus">
-        <div>
-          {
-            this.props.colorCodes.map((item,index)=>{
-              return (<div key={index} style={{ backgroundColor: item.Color_x0020_Code,  height:'2em', textAlign: 'center', marginBottom:'5px', padding:'3px'}} onClick={(e) => this._updateTaskStatus(item)}>
-                  <span>{item.Status}</span>
-              </div>)
-            })
-          }
-        </div>
+        { statusPopOver }
       </Popover>
     </Overlay>
   </div>)
-}
+
+  }
 
 dueDateTemplate(rowData, column){
   let date= new Date(rowData.DueDate);
@@ -321,75 +401,55 @@ dueDateTemplate(rowData, column){
   taskEditor(props) {
     return <InputText type="text" value={props.rowData.title} />;
   }
-  private _menuButtonElement: HTMLElement | null;
+ // private _menuButtonElement: HTMLElement | null;
   public render(): React.ReactElement<IBaseTableProps> {
     var components: JSX.Element[] = [];
     return (
-      
-          <DataTable
-            value={this.state.items}
-            scrollable={true}
-            reorderableColumns={true}
-            onRowReorder={e => this.setState({ items: e.value })}
-            selection={this.state.selectedItems}
-            onSelectionChange={e => this.setState({ selectedItems: e.data })}
-          >
-            <Column columnKey="checkbox" selectionMode="multiple" style={{ width: "2em" }} />
-            <Column columnKey="rowIcon" rowReorder={true} style={{ width: "2em" }} />
-            <Column field="Title" header="Task Name" style={{ width: "11.5em" }} editor={this.taskEditor} />
-            <Column
-              field="DueDate"
-              header="Due Date"
-              body={this.dueDateTemplate}
-              style={{ padding: 0 }}
-            />
-            <Column
-              field="AssignedTo[0].Title"
-              header="Owner"
-              body={this.ownerTemplate}      
-              style={{ width: "9em" }}   
-            />
-            <Column
-              field="Status"
-              header="Status"
-              body={this.statusTemplate}
-              style={{ padding: 0 }}
-            />
-            <Column
-              field="Tags"
-              header="Tags"
-              body={this.tagsTemplate}
-              style={{ padding: 0 }}
-            />
-            {/* <Column
-              field="Managers[0].Title"
-              header="Managers"
-              body={this.managerTemplate}
-              style={{ padding: 0 }}
-            /> */}
-            <Column field="Priority" header="Priority" style={{ width: "6em" }}  />
-          </DataTable>
-     
+      <DataTable
+        value={this.state.items}
+        scrollable={true}
+        reorderableColumns={true}
+        resizableColumns={true}
+        onRowReorder={e => this.setState({ items: e.value })}
+        selection={this.state.selectedItems}
+        onSelectionChange={e => this.setState({ selectedItems: e.data })}
+      >
+        <Column columnKey="checkbox" selectionMode="multiple" style={{ width: "2em" }} />
+        <Column columnKey="rowIcon" rowReorder={true} style={{ width: "2em" }} />
+        <Column field="Title" header="Task Name" style={{ width: "11.5em" }} editor={this.taskEditor} />
+        <Column
+          field="DueDate"
+          header="Due Date"
+          body={this.dueDateTemplate}
+          style={{ padding: 0 }}
+        />
+        <Column
+          field="AssignedTo[0].Title"
+          header="Owner"
+          body={this.ownerTemplate} 
+          style={{ width: "9em" }}        
+        />
+        <Column
+          field="Status"
+          header="Status"
+          body={this.statusTemplate}
+          style={{ padding: 0 }}
+        />
+        <Column
+          field="Tags"
+          header="Tags"
+          body={this.tagsTemplate}
+          style={{ padding: 0 }}
+        />
+        {/* <Column
+          field="Managers[0].Title"
+          header="Managers"
+          body={this.managerTemplate}
+          style={{ padding: 0 }}
+        /> */}
+        <Column field="Priority" header="Priority" style={{ width: "6em" }}/>
+      </DataTable>      
     );
-  }
-
-  private _updateTaskStatus(Status) {
-    let item = this.state.currentItem;
-
-    console.log("item",item);
-    console.log("Status",Status);
-    let list = pnp.sp.web.lists.getByTitle("NonPeriodicProjects");
-    list.items
-      .getById(item.ID)
-      .update({
-        Status0Id: Status.ID
-      })
-      .then(i => {
-        alert("Item Updated!");
-      });
-
-      //Code to refresh Task List after updating the status
-      //END - Code to refresh Task List after updating the status
   }
 
   private _getTableHeaders(props) {
@@ -401,15 +461,15 @@ dueDateTemplate(rowData, column){
     });
     return _tableHeaders;
   }
-  private _getTableRows(props) {
-    if (props.items.length === 0) return null;
+  // private _getTableRows(props) {
+  //   if (props.items.length === 0) return null;
 
-    let _tableHeaders: string;
-    this.props.items.map((item: ISpItem, index: number) => {
-      _tableHeaders += "<td>" + item.Title + "</td>";
-    });
-    return _tableHeaders;
-  }
+  //   let _tableHeaders: string;
+  //   this.props.items.map((item: ISpItem, index: number) => {
+  //     _tableHeaders += "<td>" + item.Title + "</td>";
+  //   });
+  //   return _tableHeaders;
+  // }
 
   handleClick(e) {
     this.setState({
@@ -440,37 +500,139 @@ dueDateTemplate(rowData, column){
     });
   }
 
-  private _alertClicked(e, text): void {
-    let list = pnp.sp.web.lists.getByTitle("TaskList");
-    list.items
-      .getById(this.state.itemID)
+  // private _alertClicked(e, text): void {
+  //   let list = pnp.sp.web.lists.getByTitle("TaskList");
+  //   list.items
+  //     .getById(this.state.itemID)
+  //     .update({
+  //       Status: text
+  //     })
+  //     .then(i => {
+  //       this.props.onRefreshItems();
+  //       this.setState({
+  //         open: false,
+  //         itemID: 0
+  //       });
+  //       //alert("Status "+text+" saved succefully!!!");
+  //     });
+  // }
+
+  // private _alertClickedNew(e, text): void {
+  //   let list = pnp.sp.web.lists.getByTitle("TaskList");
+  //   list.items
+  //     .getById(this.state.itemID)
+  //     .update({
+  //       Priority: text
+  //     })
+  //     .then(i => {
+  //       this.props.onRefreshItems();
+  //       this.setState({
+  //         show: false,
+  //         itemID: 0
+  //       });
+  //       //alert("Priority "+text+" saved succefully!!!");
+  //     });
+  // }
+
+  private updateStatus(): void {
+    let colors = this.state.colorCodes;
+    let list = pnp.sp.web.lists.getByTitle("Status Master");
+
+    let batch = sp.web.createBatch();
+
+    colors.map((item, index) => {
+      list.items
+      .getById(item.ID)
       .update({
-        Status: text
+        Status:item.Status,      
+        Title:item.Title
       })
-      .then(i => {
-        this.props.onRefreshItems();
-        this.setState({
-          open: false,
-          itemID: 0
+      .then(i => {  
+        this._getListItems(this.props.list);     
+      });
+    });
+
+    batch.execute().then(d => {
+     // this._getListItems(this.props.list);
+    });   
+  }
+
+  private _getColorCodes(): void {
+    sp.web.lists.getById('f99f45bf-4e40-4c70-823f-d25818442853')
+      .items
+      .select("ID", "Title", "Status", "Color_x0020_Code")
+      .get()
+      .then((response) => {
+       this.setState({
+          colorCodes: response
         });
-        //alert("Status "+text+" saved succefully!!!");
+      });
+  }
+  private _getOwners(): void {
+    sp.web.lists.getById('486f4cff-5602-413e-b471-e4765aff56a3')
+      .items.filter("Project/ID eq 1 and Status eq 'Active'")
+      .select("ProjectID", "TeamMember/ID","TeamMember/Title","Status").expand("TeamMember")
+      .get()
+      .then((response) => {
+       this.setState({
+          ownerList: response,
+          managerList: response,
+        });
       });
   }
 
-  private _alertClickedNew(e, text): void {
-    let list = pnp.sp.web.lists.getByTitle("TaskList");
+  private _getListItems(list): void {
+    
+    if(list === "")
+      return;
+    //Get all list items
+    sp.web.lists.getById(list)
+      .items.filter("Projects/ID eq 1")
+      .select("ID","Title", "AssignedTo/Title", "AssignedTo/ID", "Managers/Title", "Managers/ID","DueDate", "Status","Status0/Color_x0020_Code", "Status0/ID", "Status0/Status","Priority","Tags").expand("AssignedTo", "Managers", "Status0")
+      .get()
+      .then((response) => {
+        this.setState({
+          items: response
+        });
+      });
+  }
+
+  private _updateTaskStatus(Status) {
+    let item = this.state.currentItem;
+
+    let list = pnp.sp.web.lists.getByTitle("NonPeriodicProjects");
     list.items
-      .getById(this.state.itemID)
+      .getById(item.ID)
       .update({
-        Priority: text
+        Status0Id: Status.ID
       })
       .then(i => {
-        this.props.onRefreshItems();
-        this.setState({
-          show: false,
-          itemID: 0
-        });
-        //alert("Priority "+text+" saved succefully!!!");
+        this._getListItems(this.props.list);
+        // let activity = {
+        //   projectId : this.state.projectId,
+        //   taskId: item.ID,
+        //   activityFor:'Status',
+        //   activityByUserId:11,
+        //   activityDate: new Date().toDateString(),
+        //   oldValue: item.Status0.Status,
+        //   newValue: Status.Status
+        // };
+        
+        // this.addActivityLog(activity);
+      });
+  }
+
+  public addActivityLog(activity){  
+  sp.web.lists.getById('Activity Log').items.add({
+          Project_x0020_NameId: activity.projectId,
+          Task_x0020_NameId: activity.taskId,
+          Activity_x0020_For: activity.activityFor,
+          Activity_x0020_ById:activity.activityByUserId,
+          Activity_x0020_Date: activity.activityDate,
+          Old_x0020_Value: activity.oldValue,
+          New_x0020_Value: activity.newValue
+      }).then((iar: ItemAddResult) => {
+      console.log(iar);
       });
   }
   
