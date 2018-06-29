@@ -26,13 +26,15 @@ export default class TaskManager extends React.Component<ITaskManagerProps, ITas
     return (
       <div>
       <Activities />
-      <BaseTable 
-        fields = {this.state.fields}
-        items = {this.state.items}
-        colorCodes = {this.state.colorCodes}
-        owners = {this.state.owners}
-        onRefreshItems= {this._onRefreshItems.bind(this)}
-      />
+      <div className="BaseTableOuterContainer">
+        <BaseTable 
+          fields = {this.state.fields}
+          items = {this.state.items}
+          colorCodes = {this.state.colorCodes}
+          owners = {this.state.owners}
+          onRefreshItems= {this._onRefreshItems.bind(this)}
+        />
+      </div>
 
       </div>
     );
@@ -81,7 +83,7 @@ export default class TaskManager extends React.Component<ITaskManagerProps, ITas
   private _getColorCodes(): void {
     sp.web.lists.getById('f99f45bf-4e40-4c70-823f-d25818442853')
       .items
-      .select("Title", "Status", "Color_x0020_Code")
+      .select("ID", "Title", "Status", "Color_x0020_Code")
       .get()
       .then((response) => {
        this.setState({

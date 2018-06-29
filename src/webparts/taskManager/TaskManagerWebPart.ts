@@ -19,6 +19,8 @@ import {
   PropertyFieldListPickerOrderBy
 } from '@pnp/spfx-property-controls/lib/PropertyFieldListPicker';
 
+require('./BaseTableStyles.overrides.css');
+
 export interface ITaskManagerWebPartProps {
   list: string;
 }
