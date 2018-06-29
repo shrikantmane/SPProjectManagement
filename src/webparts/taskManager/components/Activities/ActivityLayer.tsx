@@ -25,8 +25,8 @@ export default class Activities extends React.Component<IActivityProps, IActivit
         };
       
         //remove this
-        props.projectId = this.props.projectId || "2";
-        props.taskId = this.props.taskId || "4";
+        props.projectId = this.props.projectId || 2;
+        props.taskId = this.props.taskId || 4;
 
         this._getActivityDetails = this._getActivityDetails.bind(this);
         this._showPanel = this._showPanel.bind(this);       
@@ -148,11 +148,11 @@ export default class Activities extends React.Component<IActivityProps, IActivit
 
     private async _getActivityDetails(): Promise<void> {
         let items;
-        if(this.props.projectId != "" && this.props.projectId != null){
+        if(this.props.projectId != null){
             items = await pnp.sp.web.lists.getByTitle('Activity Log').items.filter(`ProjectName/Id eq '${this.props.projectId}'`).select("ProjectName/Id","Activity_x0020_Date","Activity_x0020_By/Title","Task_x0020_Name/Title","Activity_x0020_For","Old_x0020_Value", "New_x0020_Value")
             .expand("Activity_x0020_By","Task_x0020_Name","ProjectName").orderBy("Modified", false).get();
         }
-        else if(this.props.taskId != "" && this.props.taskId != null){
+        else if(this.props.taskId != null){
             items = await pnp.sp.web.lists.getByTitle('Activity Log').items.filter(`Task_x0020_Name/Id eq '${this.props.taskId}'`).select("Activity_x0020_Date","Activity_x0020_By/Title","Task_x0020_Name/Title","Activity_x0020_For","Old_x0020_Value", "New_x0020_Value")
             .expand("Activity_x0020_By","Task_x0020_Name").orderBy("Modified", false).get();
         }

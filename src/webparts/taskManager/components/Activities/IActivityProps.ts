@@ -1,4 +1,4 @@
 export interface IActivityProps{
-    projectId?:string;
-    taskId?:string;
+    projectId?:number;
+    taskId?:number;
 }
