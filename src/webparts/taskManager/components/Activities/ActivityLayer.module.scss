@@ -229,7 +229,7 @@ a {
     align-items: center;
 }
 .hostClassTags{
-    max-width: 200px !important;
+    max-width: 150px !important;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -255,6 +255,10 @@ a {
 .activityTooltip{
     float:right;
     padding-right: 100px;
+}
+.tagName{
+    padding-left: 3px;
+    color: green;
 }
 
 
