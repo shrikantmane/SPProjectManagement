@@ -30,6 +30,7 @@ export interface ITeamMemberState {
  peopleList: IPersonaProps[];
  currentSelectedItems?: IPersonaProps[];
  mostRecentlyUsed: IPersonaProps[];
+ projectId : number | string;
 }
 
 export interface ISelectedUser{
@@ -94,7 +95,8 @@ private _picker: IBasePicker<IPersonaProps>;
       delayResults: false,
       peopleList: [],
       currentSelectedItems: [],
-      mostRecentlyUsed: []
+      mostRecentlyUsed: [],
+      projectId : 1
     };
 
     this._addListItem = this._addListItem.bind(this);
@@ -264,7 +266,7 @@ private _picker: IBasePicker<IPersonaProps>;
    private _getListItems(): void {
     let list = sp.web.lists.getByTitle("Project Team Member");
        list.items
-      .select("ID","ProjectID", "StartDate", "EndDate", "Status","TeamMember/Title", "TeamMember/ID", "Project/Title", "Project/ID").expand("TeamMember","Project").filter("Project/ID eq 1 and Status eq 'Active'")
+      .select("ID","ProjectID", "StartDate", "EndDate", "Status","TeamMember/Title", "TeamMember/ID", "Project/Title", "Project/ID").expand("TeamMember","Project").filter("Project/ID eq "+ this.state.projectId +" and Status eq 'Active'")
       .get()
       .then((response) => {
         this.setState({
@@ -315,9 +317,12 @@ private _picker: IBasePicker<IPersonaProps>;
                 StartDate : date,
                 Status : "Active", 
                 TeamMemberId : key,
-                ProjectId : 1
+                ProjectId : this.state.projectId
             }).then(response => {
                 this._onRefreshItems();
+                this.setState({
+                  selectedUser : []
+                });
                }).catch(console.log);
            }
   }
