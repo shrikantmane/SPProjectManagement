@@ -10,6 +10,7 @@ import { escape } from '@microsoft/sp-lodash-subset';
 import BaseTable from './BaseTable/BaseTable'
 import {sp, ItemAddResult} from "@pnp/sp";
 import  Activities from '../components/Activities/ActivityLayer';
+import  TeamMember from './TeamMember/TeamMember';
 
 export default class TaskManager extends React.Component<ITaskManagerProps, ITaskManagerState> {
   constructor(props){
@@ -22,6 +23,7 @@ export default class TaskManager extends React.Component<ITaskManagerProps, ITas
   public render(): React.ReactElement<ITaskManagerProps> {
     return (
       <div>
+      <TeamMember/>
       <Activities />
       <BaseTable 
         fields = {this.state.fields}
@@ -49,7 +51,7 @@ export default class TaskManager extends React.Component<ITaskManagerProps, ITas
     sp.web.lists.getById(props.list)
       .fields.filter("Hidden eq false and ReadOnlyField eq false and Group eq 'Custom Columns'")
       .get().then((response: ISpField[]) => {
-        console.log(response);
+        //console.log(response);
         this.setState({
           fields: response
         });
@@ -67,7 +69,7 @@ export default class TaskManager extends React.Component<ITaskManagerProps, ITas
       .select("ID","Title", "AssignedTo/Title", "AssignedTo/ID", "DueDate", "Status","Priority").expand("AssignedTo")
       .get()
       .then((response) => {
-        console.log(response);
+        //console.log(response);
         this.setState({
           items: response
         });

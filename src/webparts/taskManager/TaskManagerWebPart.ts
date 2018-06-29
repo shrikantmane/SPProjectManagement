@@ -30,7 +30,9 @@ export default class TaskManagerWebPart extends BaseClientSideWebPart<ITaskManag
       TaskManager,
       {
         list: this.properties.list,
-        context: this.context
+        context: this.context,
+        siteurl: this.context.pageContext.web.absoluteUrl
+
       }
     );
 
