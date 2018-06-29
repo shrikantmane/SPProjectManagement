@@ -1,0 +1,271 @@
+@import '~@microsoft/sp-office-ui-fabric-core/dist/sass/SPFabricCore.scss';
+
+.activityLayer {
+    .activity1 {
+        border-top-color: transparent;
+    }
+}
+
+.activity-log-container .single-activity-log-container:first-child .single-activity-log {
+    border-top-color: transparent;
+}
+
+.activity-log-container .single-activity-log-container .single-activity-log {
+    border-top: 1px solid #f1f1f1;
+}
+
+.activity-log-container .single-activity-log {
+    padding: 8px 0;
+}
+
+.activity-log-container .single-activity-log .activity-box {
+    display: flex;
+    position: relative;
+    align-items: center;
+    height: 34px;
+    font-family: Roboto,sans-serif;
+    font-size: 14px;
+    padding: 0 8px;
+}
+
+.activity-log-container .single-activity-log .activity-box .humanize {
+    flex: 0 0 56px;
+    color: #333;
+}
+
+.activity-log-container .single-activity-log .activity-box .activity-and-user {
+    flex: 1 0 0;
+    display: flex;
+    position: relative;
+    align-items: center;
+    height: 100%;
+}
+
+.activity-log-container .single-activity-log .activity-box .activity-and-user .user {
+    flex: 0 1 auto;
+    z-index: 1;
+    height: 30px;
+}
+
+.activity-log-container .single-activity-log .activity-box .activity-and-user .user .profile_photo {
+    margin-bottom: 0;
+}
+
+a {
+    color: #333;
+    cursor: pointer;
+    text-decoration: none;
+}
+
+.activity-log-container .single-activity-log .activity-box .activity-and-user .user .profile_photo img {
+    height: 30px;
+    width: 30px;
+}
+
+.img-circle {
+    border-radius: 50%;
+    background: #c4c4c4;
+}
+
+.activity-log-container .single-activity-log .activity-box .activity-and-user .ds-text-component {
+    cursor: default;
+    flex: 1 1 auto;
+    padding-left: 36px;
+    padding-right: 0;
+    position: absolute;
+    border: none;
+    width: 100%;
+    line-height: 34px;
+    color: #333;
+    font-size: 14px;
+}
+
+.ds-text-component {
+    width: 100%;
+    //height: 100%;
+    overflow-x: hidden;
+    overflow-y: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    border: 1px solid transparent;
+    padding: 0 2px;
+    padding-left: 3px;
+    //max-width: 50px !important;
+}
+
+.activity-log-container .single-activity-log .activity-box .additional-values {
+    display: flex;
+    flex: 1.5 0 0;
+    height: 100%;
+    align-items: center;
+}
+
+.activity-log-container .single-activity-log .activity-box .separator {
+    flex: 0 0 16px;
+    height: 100%;
+}
+
+.activity-log-container .single-activity-log .activity-box .column-type {
+    font-size: 14px;
+    font-family: Roboto,sans-serif;
+    flex: 1.2 0 0;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    position: relative;
+    //padding-right: 20px;
+    max-width: 200px;
+}
+
+.timeIcon {
+      padding-right: 3px;
+}
+
+.statusIcon {
+    color: #1e4bef;
+}
+.priorityIcon {
+    color: #4dcccc;
+}
+.timelineIcon {
+    color: #040404;
+}
+.commentIcon {
+    color: green;
+}
+.tagsIcon {
+    color: red;
+}
+.phaseIcon {
+    color: olive;
+}
+
+.activity-log-container .single-activity-log .activity-box .old-new-values-container {
+    flex: 2.2 0 0;
+    display: flex;
+    height: 100%;
+    align-items: center;
+    overflow: hidden;
+    padding-left: 10px;
+}
+
+.activity-log-container .single-activity-log .activity-box .old-new-values-container .new-value, .activity-log-container .single-activity-log .activity-box .old-new-values-container .old-value {
+    cursor: default;
+    flex: 1 0 0;
+    height: 100%;
+}
+
+.activity-log-container .single-log-value.color, .activity-log-container .single-log-value.timerange {
+    border-radius: 2px;
+}
+
+.activity-log-container .single-log-value {
+    //position: relative;
+    height: 100%;
+    //text-align: center;
+    color: #333;
+    font-size: 14px;
+    letter-spacing: -.03em;
+    padding-left: 11px;
+}
+
+.activity-log-container .single-log-value.color .empty, .activity-log-container .single-log-value.timerange .empty {
+    border-radius: 2px;
+    background-color: #c4c4c4;
+    height: 30px;
+    margin-top: 2px;
+    width: 100%;
+}
+
+.activity-log-container .single-activity-log .activity-box .separator.before-arrow {
+    flex: 0 0 2px;
+}
+
+.activity-log-container .single-activity-log .activity-box .old-new-values-container .arrow-separator {
+    flex: 0 0 8px;
+    height: 8px;
+    border-bottom: 1px solid #c4c4c4;
+    border-right: 1px solid #c4c4c4;
+    transform: rotate(-45deg);
+}
+
+.activity-log-container .single-activity-log .activity-box .separator.after-arrow {
+    flex: 0 0 7px;
+}
+
+.activity-log-container .single-activity-log .activity-box .old-new-values-container .new-value, .activity-log-container .single-activity-log .activity-box .old-new-values-container .old-value {
+    cursor: default;
+    flex: 1 0 0;
+    height: 100%;
+}
+
+.activity-log-container .single-log-value:not(.empty):first-child {
+    line-height: 32px;
+}
+
+.activity-log-container .single-log-value:not(.color):not(.timerange) .empty {
+    height: 20px;
+    margin-top: 7px;
+    background-color: #fff;
+    color: #333;
+}
+
+.activity-log-container .single-log-value:not(.color):not(.timerange) .empty:after {
+    content: "-";
+    padding-left: 15px;
+}
+
+.hostClass{
+    max-width: 50px !important;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.tags-value {
+    flex: 2.2 0 0;
+    display: flex;
+    height: 100%;
+    align-items: center;
+}
+.hostClassTags{
+    max-width: 150px !important;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.hostClassColumnType{
+    max-width: 60px !important;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.hostClassTask{
+    max-width: 150px !important;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.activityBtn{
+    font-size: 20px;
+    float:right;
+    padding-left: 100px;
+}
+.activityTooltip{
+    float:right;
+    padding-right: 100px;
+}
+.tagName{
+    padding-left: 3px;
+    color: green;
+}
+
+
+
+
+
+
+
+
+

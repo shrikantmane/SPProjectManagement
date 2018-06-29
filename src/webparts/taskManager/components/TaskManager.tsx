@@ -33,18 +33,33 @@ export default class TaskManager extends React.Component<ITaskManagerProps, ITas
         projectId = {this.state.projectId}
       />)
     }
+
+    let activities;
+    if(this.state.projectId != 0){
+      activities = (<Activities 
+          projectId = {this.state.projectId}
+          // taskId = {this.state.taskId}
+        />)
+      }
+
     //let  BaseTable()
     return (
-      <div>
+      <div className="row">
+      <div className="col-md-3">
       <Projects projectIdCallout = {this.projectIdHandler} />
-      <TeamMember projectId = {this.state.projectId}/>
-      <Activities />
-      <div className="BaseTableOuterContainer">
-      {/* <BaseTable 
-        list= {this.props.list}
-        projectId = {this.state.projectId}
-      /> */}
-           {table}
+      </div>
+      <div className="col-md-9">
+          <TeamMember projectId = {this.state.projectId}/>
+          {/* <Activities /> */}
+          {activities}
+          <br/><br/>
+          <div className="BaseTableOuterContainer">
+          {/* <BaseTable 
+            list= {this.props.list}
+            projectId = {this.state.projectId}
+          /> */}
+              {table}
+            </div>
         </div>
       </div>
     );

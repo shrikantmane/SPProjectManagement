@@ -641,23 +641,23 @@ dueDateTemplate(rowData, column){
       })
       .then(i => {
         this._getListItems(this.props.list, this.state.projectId);
-        // let activity = {
-        //   projectId : this.state.projectId,
-        //   taskId: item.ID,
-        //   activityFor:'Status',
-        //   activityByUserId:11,
-        //   activityDate: new Date().toDateString(),
-        //   oldValue: item.Status0.Status,
-        //   newValue: Status.Status
-        // };
+        let activity = {
+          projectId : this.state.projectId,
+          taskId: item.ID,
+          activityFor:'Status',
+          activityByUserId:11,
+          activityDate: new Date().toDateString(),
+          oldValue: item.Status0===undefined ? "" :item.Status0.Status,
+          newValue: Status.Status,
+        };
         
-        // this.addActivityLog(activity);
+        this.addActivityLog(activity);
       });
   }
 
   public addActivityLog(activity){  
-  sp.web.lists.getById('Activity Log').items.add({
-          Project_x0020_NameId: activity.projectId,
+  sp.web.lists.getByTitle('Activity Log').items.add({
+          ProjectNameId: activity.projectId,
           Task_x0020_NameId: activity.taskId,
           Activity_x0020_For: activity.activityFor,
           Activity_x0020_ById:activity.activityByUserId,

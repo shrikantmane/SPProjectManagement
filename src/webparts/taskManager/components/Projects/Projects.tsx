@@ -2,7 +2,7 @@ import * as React from 'react';
 import * as jQuery from "jquery";
 import * as bootstrap from "bootstrap";
 import { SPComponentLoader } from '@microsoft/sp-loader';
-import { OverlayTrigger, Button, Popover, Nav, NavItem, NavDropdown, MenuItem } from 'react-bootstrap';
+import { Overlay, OverlayTrigger, Button, Popover, Nav, NavItem, NavDropdown, MenuItem } from 'react-bootstrap';
 import { default as pnp, sp, ItemAddResult } from "sp-pnp-js";
 import styles from './Projects.module.scss';
 import PeoplePickerTypesExample from '../PeoplePickerComponent/PeoplePickerComponent';
@@ -17,8 +17,9 @@ export default class Projects extends React.Component<any, any> {
             manager: '',
             options: [],
             projectTitles: [],
-            collapsed: true
-        }
+            collapsed: true,
+            show: false
+        }   
 
         // SPComponentLoader.loadCss('https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css');
         // SPComponentLoader.loadCss('https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js');
@@ -27,12 +28,18 @@ export default class Projects extends React.Component<any, any> {
         this.onChange = this.onChange.bind(this);
         this.getUsers = this.getUsers.bind(this);
         this.toggleNavbar = this.toggleNavbar.bind(this);
+        this.handleClick = this.handleClick.bind(this);
     }
 
     componentDidMount() {
         this._getAllSiteUsers();
         this._getListItems();
     }
+
+    handleClick = e => {
+        this.setState({ target: e.target, show: !this.state.show });
+    };
+
 
     private _getAllSiteUsers = (): void => {
 
@@ -93,6 +100,7 @@ export default class Projects extends React.Component<any, any> {
         }).then((iar: ItemAddResult) => {
             console.log(iar);
             this._getListItems();
+            this.setState({ show: false });
         });
     }
 
@@ -114,7 +122,7 @@ export default class Projects extends React.Component<any, any> {
             );
         });
         return (
-            <div>
+            <div className="projectOuterContainer">
                 <div>
                     <Nav
                         bsStyle="tabs"
@@ -126,48 +134,49 @@ export default class Projects extends React.Component<any, any> {
                     </Nav>
                 </div>
                 <div>
-                    <OverlayTrigger
-                        container={this}
-                        trigger="click"
+                <Overlay
+                        show={this.state.show}
+                        target={this.state.target}
                         placement="right"
-                        overlay={
-                            <Popover id="popover-positioned-scrolling-right">
-                                <form>
-                                    <div className="form-group">
-                                        <label className="col-form-label" htmlFor="name">Project Name</label>
-                                        <div>
-                                            <input id="name" className="form-control" name="name" type="text" onChange={this.onChange} />
-                                        </div>
-                                    </div>
-                                    <div className="form-group">
-                                        <label className="col-form-label" htmlFor="username">Project Code</label>
-                                        <div>
-                                            <input id="code" className="form-control" name="code" type="text" onChange={this.onChange} />
-                                        </div>
-                                    </div>
-                                    <div className="form-group">
-                                        <label className="col-form-label" htmlFor="description">Project Description</label>
-                                        <div>
-                                            <input id="description" className="form-control" name="description" type="text" onChange={this.onChange} />
-                                        </div>
-                                    </div>
-                                    <div className="form-group">
-                                        <label className="col-form-label" htmlFor="manager">Manager</label>
-                                        <PeoplePickerTypesExample optionsCallback={this.getUsers} />
-                                    </div>
-
-                                    <div className="form-group">
-                                        <button type="button" className="btn btn-info" onClick={this.handleSubmit}>Save</button>
-                                    </div>
-                                </form>
-                            </Popover>
-                        }
+                        container={this}
+                        containerPadding={20}
                     >
-                        <Button className="btn icon-btn addBtn">
-                            <span className="glyphicon btn-glyphicon glyphicon-plus addIcon"></span>
-                            Add
+                        <Popover id="popover-positioned-scrolling-right">
+                            <form>
+                                <div className="form-group">
+                                    <label className="col-form-label" htmlFor="name">Project Name</label>
+                                    <div>
+                                        <input id="name" className="form-control" name="name" type="text" onChange={this.onChange} />
+                                    </div>
+                                </div>
+                                <div className="form-group">
+                                    <label className="col-form-label" htmlFor="username">Project Code</label>
+                                    <div>
+                                        <input id="code" className="form-control" name="code" type="text" onChange={this.onChange} />
+                                    </div>
+                                </div>
+                                <div className="form-group">
+                                    <label className="col-form-label" htmlFor="description">Project Description</label>
+                                    <div>
+                                        <input id="description" className="form-control" name="description" type="text" onChange={this.onChange} />
+                                    </div>
+                                </div>
+                                <div className="form-group">
+                                    <label className="col-form-label" htmlFor="manager">Manager</label>
+                                    <PeoplePickerTypesExample optionsCallback={this.getUsers} />
+                                </div>
+
+                                <div className="form-group">
+                                    <button type="button" className="btn btn-info" onClick={this.handleSubmit}>Save</button>
+                                </div>
+                            </form>
+                        </Popover>
+                    </Overlay>
+                    <Button className="btn icon-btn addBtn" onClick={this.handleClick}>
+                        <span className="glyphicon btn-glyphicon glyphicon-plus addIcon"></span>
+                        Add
                         </Button>
-                    </OverlayTrigger>
+                    
                 </div>
             </div>
         );
