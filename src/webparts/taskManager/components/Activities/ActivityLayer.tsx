@@ -4,7 +4,7 @@ import { Panel,PanelType  } from 'office-ui-fabric-react/lib/components/Panel';
 import { Checkbox } from 'office-ui-fabric-react/lib/components/Checkbox';
 import { LayerHost } from 'office-ui-fabric-react/lib/components/Layer';
 import { IActivityState } from './IActivityState';
-import { Button } from 'office-ui-fabric-react/lib/Button';
+import { Button, DefaultButton } from 'office-ui-fabric-react/lib/Button';
 import { Label } from 'office-ui-fabric-react/lib/components/Label';
 import { Pivot, PivotItem } from 'office-ui-fabric-react/lib/components/Pivot';
 import * as exampleStylesImport from 'office-ui-fabric-react/lib/common/_exampleStyles.scss';
@@ -25,13 +25,20 @@ export default class Activities extends React.Component<{}, IActivityState> {
             taskId:"4"
         };
 
-        this._getActivityDetails = this._getActivityDetails.bind(this);       
+        this._getActivityDetails = this._getActivityDetails.bind(this);
+        this._showPanel = this._showPanel.bind(this);       
     }
 
     public render(): React.ReactElement<IActivityState> {
-        return (
-            <div>
-                <Checkbox label="Show activity" checked={this.state.showPanel} onChange={this._onShowPanelChange} />
+        
+        return ( 
+            <div> 
+                <TooltipHost hostClassName={styles["activityTooltip"]} content="Show Activity">
+                   <span>
+                    <i className={`ms-Icon ms-Icon--Globe ${styles["activityBtn"]}`} onClick={this._showPanel} aria-hidden="true"></i>
+                    </span>
+                </TooltipHost>              
+                
                 <Customizer scopedSettings={
                     this.state.trapPanel
                         ? {
@@ -120,6 +127,13 @@ export default class Activities extends React.Component<{}, IActivityState> {
                 />
             </div>
         );
+    }
+
+    public _showPanel(){
+        this.setState({
+            showPanel : true
+        });
+        this._onShowPanelChange;
     }
 
     public componentDidMount() {
