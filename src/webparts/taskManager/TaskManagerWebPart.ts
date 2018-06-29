@@ -1,6 +1,9 @@
 import * as React from 'react';
 import * as ReactDom from 'react-dom';
 import { Version } from '@microsoft/sp-core-library';
+// import 'primereact/resources/themes/omega/theme.css';
+import 'primereact/resources/primereact.min.css';
+import 'primeicons/primeicons.css';
 import {
   BaseClientSideWebPart,
   IPropertyPaneConfiguration,
@@ -10,11 +13,14 @@ import {
 import * as strings from 'TaskManagerWebPartStrings';
 import TaskManager from './components/TaskManager';
 import { ITaskManagerProps } from './components/ITaskManagerProps';
+require('./BaseTableStyles.overrides.css');
 
 import {
   PropertyFieldListPicker,
   PropertyFieldListPickerOrderBy
 } from '@pnp/spfx-property-controls/lib/PropertyFieldListPicker';
+
+require('./BaseTableStyles.overrides.css');
 
 export interface ITaskManagerWebPartProps {
   list: string;

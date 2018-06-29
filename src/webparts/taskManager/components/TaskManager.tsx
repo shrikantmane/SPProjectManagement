@@ -10,36 +10,77 @@ import { escape } from '@microsoft/sp-lodash-subset';
 import BaseTable from './BaseTable/BaseTable'
 import {sp, ItemAddResult} from "@pnp/sp";
 import  Activities from '../components/Activities/ActivityLayer';
+import  TeamMember from './TeamMember/TeamMember';
+import Projects from './Projects/Projects';
 
 export default class TaskManager extends React.Component<ITaskManagerProps, ITaskManagerState> {
   constructor(props){
     super(props);
     this.state = {
       fields: [],
-      items: []
+      items: [],
+      colorCodes: [],
+      owners: [],
+      projectId:0
     }
+    this.projectIdHandler = this.projectIdHandler.bind(this);
   }
   public render(): React.ReactElement<ITaskManagerProps> {
-    return (
-      <div>
-      <Activities />
-      <BaseTable 
-        fields = {this.state.fields}
-        items = {this.state.items}
-        onRefreshItems= {this._onRefreshItems.bind(this)}
-      />
+    let table;
+    if(this.state.projectId != 0){
+    table = (<BaseTable 
+        list= {this.props.list}
+        projectId = {this.state.projectId}
+      />)
+    }
 
+    let activities;
+    if(this.state.projectId != 0){
+      activities = (<Activities 
+          projectId = {this.state.projectId}
+          // taskId = {this.state.taskId}
+        />)
+      }
+
+    //let  BaseTable()
+    return (
+      <div className="row">
+      <div className="col-md-3">
+      <Projects projectIdCallout = {this.projectIdHandler} />
+      </div>
+      <div className="col-md-9">
+          <TeamMember projectId = {this.state.projectId}/>
+          {/* <Activities /> */}
+          {activities}
+          <br/><br/>
+          <div className="BaseTableOuterContainer">
+          {/* <BaseTable 
+            list= {this.props.list}
+            projectId = {this.state.projectId}
+          /> */}
+              {table}
+            </div>
+        </div>
       </div>
     );
   }
 
-  public componentDidMount() {
-    this._getListFields(this.props);
-    this._getListItems(this.props);
+  private projectIdHandler(project){
+    this.setState({
+      projectId: project
+    });
+    console.log('SelectedProject', this.state.projectId);
   }
-  public componentWillReceiveProps(nextProps) {
-    this._getListFields(nextProps);
-    this._getListItems(nextProps);
+
+  componentDidMount() {
+  //  this._getListFields(this.props);
+   // this._getListItems(this.props);
+    // this._getColorCodes();
+    // this._getOwners();
+  }
+  componentWillReceiveProps(nextProps) {
+   // this._getListFields(nextProps);
+   // this._getListItems(nextProps);
   }
   private _getListFields(props): void {
     
@@ -49,7 +90,6 @@ export default class TaskManager extends React.Component<ITaskManagerProps, ITas
     sp.web.lists.getById(props.list)
       .fields.filter("Hidden eq false and ReadOnlyField eq false and Group eq 'Custom Columns'")
       .get().then((response: ISpField[]) => {
-        console.log(response);
         this.setState({
           fields: response
         });
@@ -63,16 +103,37 @@ export default class TaskManager extends React.Component<ITaskManagerProps, ITas
       return;
     //Get all list items
     sp.web.lists.getById(props.list)
-      .items
-      .select("ID","Title", "AssignedTo/Title", "AssignedTo/ID", "DueDate", "Status","Priority").expand("AssignedTo")
+      .items.filter("Projects/ID eq 1")
+      .select("ID","Title", "AssignedTo/Title", "AssignedTo/ID", "Managers/Title", "Managers/ID","DueDate", "Status","Status0/Color_x0020_Code", "Status0/ID", "Status0/Status","Priority","Tags").expand("AssignedTo", "Managers", "Status0")
       .get()
       .then((response) => {
-        console.log(response);
         this.setState({
           items: response
         });
       });
   }
+  // private _getColorCodes(): void {
+  //   sp.web.lists.getById('f99f45bf-4e40-4c70-823f-d25818442853')
+  //     .items
+  //     .select("ID", "Title", "Status", "Color_x0020_Code")
+  //     .get()
+  //     .then((response) => {
+  //      this.setState({
+  //         colorCodes: response
+  //       });
+  //     });
+  // }
+  // private _getOwners(): void {
+  //   sp.web.lists.getById('486f4cff-5602-413e-b471-e4765aff56a3')
+  //     .items.filter("Project/ID eq 1 and Status eq 'Active'")
+  //     .select("ProjectID", "TeamMember/ID","TeamMember/Title","Status").expand("TeamMember")
+  //     .get()
+  //     .then((response) => {
+  //      this.setState({
+  //         owners: response
+  //       });
+  //     });
+  // }
   private _onRefreshItems(): void {
     this._getListItems(this.props);
   }

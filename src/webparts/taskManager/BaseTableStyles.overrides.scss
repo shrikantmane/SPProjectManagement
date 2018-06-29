@@ -1,0 +1,121 @@
+.BaseTableOuterContainer{
+    .ui-datatable {
+        font-family: "Segoe UI","Segoe",Tahoma,Helvetica,Arial,sans-serif!important;
+    }
+    .ui-widget {
+        font-family: "Segoe UI","Segoe",Tahoma,Helvetica,Arial,sans-serif!important;
+    }
+    .ui-datatable .ui-datatable-data>tr>td.ui-editable-column {
+        padding: .5em;
+        height: 34px!important;
+    }
+    .ui-datatable .ui-datatable-thead>tr>th {
+        font-weight: 400!important;
+        background: #fff!important;
+        border: none!important;
+        font-size: 12px!important;
+    }
+    .ui-datatable >tr>td {
+        background: #F0F0F0!important;
+    }
+    .ui-datatable .ui-datatable-data>tr>td{
+        background: #f0f0f0!important;
+    }
+    .ui-state-default{
+        border: none!important;
+    }
+    .ui-datatable .ui-datatable-data>tr>td.ui-selection-column{
+        background: #037F4C!important;
+        padding: 6px!important;
+    }
+    .ui-datatable .ui-selection-column .ui-chkbox-box{	
+        background-color: rgb(9, 86, 54)!important;
+         color: #fff!important;
+        border: 1px solid #0a9e61!important;
+    }
+    .ui-widget-content {
+        border: 1px solid #fff!important;
+        /*background: #f0f0f0!important;*/
+    }
+    .ui-datatable .ui-datatable-data>tr>td .ui-cell-data div{
+        width: 100%!important;
+        vertical-align: middle!important;
+        //color: #fff!important;    
+        font-size: 13px!important;    
+    }
+    // .statusPopoverContent .popover-content.popover-content{
+    //     /*min-width:400px!important;	*/
+    // }
+    .statusPopoverContent .popover-content div{
+        width:100%!important;	
+    }
+    /*#popover-trigger-click .popover-content div > div{
+        width: 46%!important;
+        color: #fff!important;
+        margin: 0 2%!important;
+        float: left!important;
+        margin-bottom: 8px!important;
+        padding-top: 4px!important;
+        font-size: 13px!important;
+    }*/
+    .statusPopoverContent .popover-content{
+        display:flex!important;
+    }
+    .statusPopoverContent .popover-content div > div{
+        flex: 0 0 32px!important;
+        /*width: 115px!important;*/
+        width: 100%!important;
+        height: 32px!important;
+        display: inline-block;
+        margin-right: 5px;
+    }
+
+    
+    
+}
+div#workbenchPageContent {
+    max-width: 10000px !important;
+    padding-left: 400px !important;
+    padding-right: 2px !important;
+}
+.projectOuterContainer{
+    .addBtn{
+        border-radius: 58px!important;
+    padding: 5px 15px!important;
+    font-size: 12px!important;
+    background: #fff!important;
+    color: #000!important;
+    border: 1px solid #ddd!important;
+    font-weight: 600!important;
+    }
+    .addIcon{
+    color: #66ccf5!important;
+    margin-right: 5px!important;
+    }
+    
+    .col-form-label{
+    font-size: 10px!important;
+    color: #383737!important;
+    text-transform: uppercase!important;
+    }
+    .popover-content .form-group .form-control {   
+    height: auto!important;
+    padding: 4px 12px!important;
+    font-size: 13px!important;
+    border-radius: 2px!important;
+    box-shadow: none!important;
+    }
+    .ms-BasePicker-input, .pickerInput_4fe0caaf {
+        height: 30px!important;
+        border-radius: 2px!important;
+    }
+    .popover-content .form-group {
+        margin-bottom: 5px!important;
+    }
+    .nav>li>a:focus{
+        background-color: #c8c8c8!important;
+    }
+    .ControlZone-control{
+     width: 200px;
+    }
+}
