@@ -41,6 +41,7 @@
     "ListOperationsWebPartStrings": "lib/webparts/listOperations/loc/{locale}.js",
     "ControlStrings": "node_modules/@pnp/spfx-controls-react/lib/loc/{locale}.js",
     "TaskManagerWebPartStrings": "lib/webparts/taskManager/loc/{locale}.js",
-    "TaskLogWebPartStrings": "lib/webparts/taskLog/loc/{locale}.js"
+    "TaskLogWebPartStrings": "lib/webparts/taskLog/loc/{locale}.js",
+    "PropertyControlStrings": "node_modules/@pnp/spfx-property-controls/lib/loc/{locale}.js"
   }
 }

@@ -32,9 +32,13 @@
     "moment": "^2.22.2",
     "office-ui-fabric-react": "^6.5.0",
     "react": "15.6.2",
+    "react-bootstrap": "^0.32.1",
     "react-dom": "15.6.2",
+    "react-hot-loader": "next",
+    "react-modal-bootstrap": "^1.1.1",
     "react-rnd": "^7.4.1",
     "react-simple-popover": "^0.2.4",
+    "react-split-pane": "^0.1.77",
     "reactstrap": "^6.1.0",
     "sp-pnp-js": "^3.0.9"
   },
