@@ -13,6 +13,7 @@ import {
 import * as strings from 'TaskManagerWebPartStrings';
 import TaskManager from './components/TaskManager';
 import { ITaskManagerProps } from './components/ITaskManagerProps';
+require('./BaseTableStyles.overrides.css');
 
 import {
   PropertyFieldListPicker,

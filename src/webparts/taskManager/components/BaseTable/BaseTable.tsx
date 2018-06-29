@@ -61,6 +61,8 @@ export interface PopOverState {
     status: string;
     priority: string;
   }[];
+  currentItem: any;
+  projectId: number
 }
 
 export default class BaseTable extends React.Component<
@@ -135,7 +137,9 @@ export default class BaseTable extends React.Component<
         ID:3,
         Color:'red'
       }
-    ]
+    ],
+    currentItem:{},
+    projectId: 1
     };
     this.statusTemplate = this.statusTemplate.bind(this);
     this.ownerTemplate = this.ownerTemplate.bind(this);
@@ -152,12 +156,12 @@ export default class BaseTable extends React.Component<
    // this.handleChangeStatus = this.handleChangeStatus.bind(this, item);
     this.onStatusApply = this.onStatusApply.bind(this);
   } 
-componentWillReceiveProps(nextProps, prevProps){
-// TODO :Need to find better approch
-  this.setState({items: this.props.items, colorCodes:this.props.colorCodes, ownerList: this.props.owners, managerList: this.props.owners})
-  // if(nextProps.items.length > 0 && nextProps.items.length != this.state.items.length)
-  //     this.setState({items: this.props.items })
-}
+// componentWillReceiveProps(nextProps, prevProps){
+// // TODO :Need to find better approch
+//  // this.setState({items: this.props.items, colorCodes:this.props.colorCodes, ownerList: this.props.owners, managerList: this.props.owners})
+//   // if(nextProps.items.length > 0 && nextProps.items.length != this.state.items.length)
+//     this.setState({items: this.props.items })
+// }
   private handleLoginClick(): void {
     jQuery("table").show();
   }
@@ -165,7 +169,11 @@ componentWillReceiveProps(nextProps, prevProps){
     jQuery("table").hide();
   }
 
-
+componentDidMount(){
+  this._getColorCodes();
+  this._getOwners();
+  this._getListItems(this.props.list);
+}
 onOwnerChange(e){
   this.setState({ownerSearchString:e.target.value});
 }
@@ -193,7 +201,7 @@ onTagPopoverHide = e => {
 
 onStatusPopoverHide = e => {
   if(e.target.id !="statusAddEdit" && e.target.className !="statusPopover" && e.target.id !="statusApply"){
-    this.setState({ showStatusPopover: false, showAddEditStatus: !this.state.showAddEditStatus })
+    this.setState({ showStatusPopover: false, showAddEditStatus: false })
   } 
 };
 
@@ -321,8 +329,12 @@ handleChangeStatus(item, e){
 
 onStatusApply(e){
   this.setState({showAddEditStatus : !this.state.showAddEditStatus});
+  this.updateStatus();
+ // this._updateTaskStatus();
 }
 statusTemplate(rowData, column) {
+let status = rowData.Status0 ? rowData.Status0.Status : "";
+let color = rowData.Status0 ? rowData.Status0.Color_x0020_Code: "";   
 let statusPopOver;
   if(!this.state.showAddEditStatus){
     statusPopOver = (
@@ -330,7 +342,7 @@ let statusPopOver;
       {
         this.state.colorCodes.map((item,index)=>{
           return (
-          <div key={index} style={{ backgroundColor: item.Color_x0020_Code,height:'2em', textAlign: 'center', marginBottom:'5px', padding:'3px'}} onClick={(e) => alert(item)}>
+          <div key={index} style={{ backgroundColor: item.Color_x0020_Code,height:'2em', textAlign: 'center', marginBottom:'5px', padding:'3px'}} onClick={(e) => this._updateTaskStatus(item)}>
               <span>{item.Status}</span>
           </div>)
         })
@@ -349,7 +361,6 @@ let statusPopOver;
                     className="statusPopover"
                     type="text"
                     value={item.Status}
-                    // onChange={this.handleChangeStatus(item)}
                     onChange={(e) => this.handleChangeStatus(item, e)}
                   />         
               )
@@ -361,27 +372,9 @@ let statusPopOver;
     )
   }
      
-  let cellColor = "";
-  switch (rowData["Status"]) {
-    case "Done":
-      cellColor = "#00c875";
-      break;
-    case "Deployed":
-      cellColor = "#ff158a";
-      break;     
-    case "In Process":
-      cellColor = "#579bfc";
-      break;
-    case "Not Started":
-      cellColor = "#fdab3d";
-      break;
-    default:
-      cellColor = "";
-      break;
-  }
    return(
     <div>      
-      <div onClick={(e) => this.setState({ statusTarget: e.target, showStatusPopover: !this.state.showStatusPopover })} style={{backgroundColor: cellColor, height: '2.5em', width:'100%', textAlign: 'center'}}>{rowData["Status"]}</div>
+      <div onClick={(e) => this.setState({ currentItem:rowData, statusTarget: e.target, showStatusPopover: !this.state.showStatusPopover })} style={{backgroundColor: color, height: '2.5em', width:'100%', textAlign: 'center'}}>{status}</div>
       
     <Overlay
       show={this.state.showStatusPopover}
@@ -416,13 +409,14 @@ dueDateTemplate(rowData, column){
         value={this.state.items}
         scrollable={true}
         reorderableColumns={true}
+        resizableColumns={true}
         onRowReorder={e => this.setState({ items: e.value })}
         selection={this.state.selectedItems}
         onSelectionChange={e => this.setState({ selectedItems: e.data })}
       >
         <Column columnKey="checkbox" selectionMode="multiple" style={{ width: "2em" }} />
         <Column columnKey="rowIcon" rowReorder={true} style={{ width: "2em" }} />
-        <Column field="Title" header="Task Name" editor={this.taskEditor} />
+        <Column field="Title" header="Task Name" style={{ width: "11.5em" }} editor={this.taskEditor} />
         <Column
           field="DueDate"
           header="Due Date"
@@ -432,7 +426,8 @@ dueDateTemplate(rowData, column){
         <Column
           field="AssignedTo[0].Title"
           header="Owner"
-          body={this.ownerTemplate}         
+          body={this.ownerTemplate} 
+          style={{ width: "9em" }}        
         />
         <Column
           field="Status"
@@ -446,182 +441,14 @@ dueDateTemplate(rowData, column){
           body={this.tagsTemplate}
           style={{ padding: 0 }}
         />
-        <Column
+        {/* <Column
           field="Managers[0].Title"
           header="Managers"
           body={this.managerTemplate}
           style={{ padding: 0 }}
-        />
-        <Column field="Priority" header="Priority" />
-      </DataTable>
-
-      //   <div>
-
-      //    <div>
-      //     <Popover
-      //       placement='bottom'
-      //       container={this}
-      //       target={this.refs.status}
-      //       show={this.state.open}
-      //       onHide={this.handleClose.bind(this)}
-      //       style={this.StatusPickerClass}
-      //       beakWidth="180px"
-
-      //     >
-      //      <DefaultButton
-      //         data-automation-id="NotStarted"
-      //         onClick={(e) => this._alertClicked.bind(this)}
-      //         text="Not Started"
-      //         style={this.NotStartedClass}
-      //       />
-
-      //        <DefaultButton
-      //         data-automation-id="InProcess"
-      //         onClick={(e) => this._alertClicked(e,"In Process")}
-      //         text="In Process"
-      //         style={this.InProcessClass}
-      //       />
-
-      //       <DefaultButton
-      //         data-automation-id="Completed"
-      //         onClick={(e) => this._alertClicked(e,"Completed")}
-      //         text="Completed"
-      //         style={this.WorkingClass}
-      //       />
-
-      //       <DefaultButton
-      //         data-automation-id="Deferred"
-      //         onClick={(e) => this._alertClicked(e,"Deferred")}
-      //         text="Deferred"
-      //         style={this.DoneClass}
-      //       />
-
-      //       <DefaultButton
-      //         data-automation-id="Waiting "
-      //         onClick={(e) => this._alertClicked(e,"Waiting on someone else")}
-      //         text="Waiting "
-      //         style={this.WaitingClass}
-      //       />
-
-      //     </Popover>
-      //     </div>
-
-      //    <div>
-      //     <Popover
-      //       placement='bottom'
-      //       container={this}
-      //       target={this.refs.priority}
-      //       show={this.state.show}
-      //       onHide={this.handleCloseNew.bind(this)}
-      //       style={this.StatusPickerClass}
-      //       beakWidth="180px"
-
-      //     >
-      //      <DefaultButton
-      //         data-automation-id="High"
-      //         onClick={(e) => this._alertClickedNew(e,"(1) High")}
-      //         text="(1) High"
-      //         style={this.NotStartedClass}
-      //       />
-
-      //        <DefaultButton
-      //         data-automation-id="Normal"
-      //         onClick={(e) => this._alertClickedNew(e,"(2) Normal")}
-      //         text="(2) Normal"
-      //         style={this.InProcessClass}
-      //       />
-
-      //       <DefaultButton
-      //         data-automation-id="Low"
-      //         onClick={(e) => this._alertClickedNew(e,"(3) Low")}
-      //         text="(3) Low"
-      //         style={this.WorkingClass}
-      //       />
-
-      //     </Popover>
-      //     </div>
-
-      //    <table style={boldText}>
-      //    <button  onClick={this.handleLogoutClick}  >Close </button>
-      //    <GunttChart
-
-      //  />
-
-      //  </table>
-      //     <div className={styles.baseTable}>
-
-      //         {/* <div className={styles.headerCaptionStyle} > Task Manager</div> */}
-      //          <div className={styles.tableStyle} >
-      //             <div className={styles.headerStyle} >
-      //                 <div className={styles.CellStyle}>Task</div>
-      //                 <div className={styles.CellStyle}>Owner</div>
-      //                 <div className={styles.CellStyle}>Status</div>
-      //                 <div className={styles.CellStyle}>Priority </div>
-      //                 {/* <div className={styles.CellStyle}>Timeline </div>  */}
-      //             </div>
-
-      //               {
-
-      //                   this.props.items.map((item, index) => {
-      //                      var taskTitleElement;
-      //                       var statusElement;
-      //                       var priorityElement;
-      //                       var ownerElement;
-      //                       var timelineElement;
-
-      //                       taskTitleElement = <div className={[styles.CellStyle, styles["task-title"]].join(' ')}  style={{width: '300'}}><span>{item.Title}</span></div>
-      //                       if(item.Status === "Completed"){
-      //                         statusElement = <div ref="status" onClick={this.handleClick.bind(this)} className={styles.CellStyle} style={{backgroundColor: '#00c875', width: '170',fontSize:'12', fontWeight: 400, color:'#fff'}}><span style={this.HideSpan}>{item.Id}</span>{item.Status}</div>
-      //                       } else {
-      //                         statusElement = <div ref="status" onClick={this.handleClick.bind(this)} className={styles.CellStyle} style={{backgroundColor: '#e2435c', width: '170', fontSize:'12', fontWeight: 400, color:'#fff'}}><span style={this.HideSpan}>{item.Id}</span>{item.Status}</div>
-      //                       }
-      //                       if(item.Priority ===   "(2) Normal"){
-      //                         priorityElement = <div ref="priority" onClick={this.handleClickNew.bind(this)} className={styles.CellStyle} style={{backgroundColor: '#00c875',width: '150', fontSize:'12', fontWeight: 400, color:'#fff', textAlign: 'left', paddingLeft:'8px'}}><span style={this.HideSpan}>{item.Id}</span>{item.Priority}</div>
-      //                       } else {
-      //                         priorityElement = <div ref="priority" onClick={this.handleClickNew.bind(this)} className={styles.CellStyle} style={{backgroundColor: '#e2435c',width: '150', fontSize:'12', fontWeight: 400, color:'#fff', textAlign: 'left', paddingLeft:'8px'}}><span style={this.HideSpan}>{item.Id}</span>{item.Priority}</div>
-      //                       }
-      //                       if(item.AssignedTo[0].Title ===   "Shrikant Mane"){
-      //                         ownerElement = <div onClick={this.handleLoginClick} className={styles.CellStyle}><img src="https://files.monday.com/photos/4038149/thumb_small/4038149-dapulse_green.png?1528873676" className="inline-image" title={item.AssignedTo[0].Title} alt={item.AssignedTo[0].Title} style={{position: 'relative', width: 25, height: 25, margin: 'auto', display: 'inline-block', verticalAlign: 'top', overflow: 'hidden', borderRadius: '50%', border: 0}} /></div>
-      //                       } else {
-      //                         ownerElement = <div onClick={this.handleLoginClick} className={styles.CellStyle}><img src="https://cdn1.monday.com/dapulse_default_photo.png" className="inline-image" title={item.AssignedTo[0].Title} alt={item.AssignedTo[0].Title} style={{position: 'relative', width: 25, height: 25, margin: 'auto', display: 'inline-block', verticalAlign: 'top', overflow: 'hidden', borderRadius: '50%', border: 0}} /></div>
-      //                       }
-      //                       //timelineElement= <div className="timeline-bar" style={{background: 'linear-gradient(to right, rgb(3, 127, 76) 22%, rgb(28, 31, 59) 22%)'}}><span className="fa fa-angle-left IGNORE_OPEN_TIMELINE_CLASS" />Jun 18 - 27<span className="fa fa-angle-right IGNORE_OPEN_TIMELINE_CLASS" /></div>
-
-      //                     return(<div className={styles.rowStyle} >
-      //                     {/* <div className={styles.CellStyle}>
-      //                             <div className={`${styles["name-cell-component"]} ${styles["name-text"]}`}>{item.Title}</div>
-      //                         </div>  */}
-      //                        {/* <div className={styles.CellStyle}>{item.AssignedTo[0].Title}</div> */}
-
-      //                         {/* <div className={styles.CellStyle}>{item.Status}</div>  */}
-
-      //                         {/* <div className={styles.CellStyle} style={{backgroundColor: '#00c875 !important'}}><span>{item.Status}</span></div> */}
-      //                         {/* <div className={styles.CellStyle}>{item.Priority}</div>  */}
-
-      //                         { taskTitleElement }
-      //                         { ownerElement }
-      //                         { statusElement }
-      //                         { priorityElement }
-      //                         {/* {timelineElement} */}
-      //                       </div>);
-      //                 })
-      //               }
-
-      //         </div>
-
-      //     </div>
-
-      //     <br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/>
-
-      //         {/* <div className={styles["tableStyle"]} >
-      //             <div className={styles.headerStyle} >
-      //                 <div className={styles.CellStyle}>Employee Name</div>
-      //                 <div className={styles.CellStyle}>Employee Id </div>
-      //                 <div className={styles.CellStyle}>Experience</div>
-      //                 <div className={styles.CellStyle}>Location</div>
-      //             </div>
-      //         </div>  */}
-      //     </div>
+        /> */}
+        <Column field="Priority" header="Priority" style={{ width: "6em" }}/>
+      </DataTable>      
     );
   }
 
@@ -634,15 +461,15 @@ dueDateTemplate(rowData, column){
     });
     return _tableHeaders;
   }
-  private _getTableRows(props) {
-    if (props.items.length === 0) return null;
+  // private _getTableRows(props) {
+  //   if (props.items.length === 0) return null;
 
-    let _tableHeaders: string;
-    this.props.items.map((item: ISpItem, index: number) => {
-      _tableHeaders += "<td>" + item.Title + "</td>";
-    });
-    return _tableHeaders;
-  }
+  //   let _tableHeaders: string;
+  //   this.props.items.map((item: ISpItem, index: number) => {
+  //     _tableHeaders += "<td>" + item.Title + "</td>";
+  //   });
+  //   return _tableHeaders;
+  // }
 
   handleClick(e) {
     this.setState({
@@ -673,37 +500,139 @@ dueDateTemplate(rowData, column){
     });
   }
 
-  private _alertClicked(e, text): void {
-    let list = pnp.sp.web.lists.getByTitle("TaskList");
-    list.items
-      .getById(this.state.itemID)
+  // private _alertClicked(e, text): void {
+  //   let list = pnp.sp.web.lists.getByTitle("TaskList");
+  //   list.items
+  //     .getById(this.state.itemID)
+  //     .update({
+  //       Status: text
+  //     })
+  //     .then(i => {
+  //       this.props.onRefreshItems();
+  //       this.setState({
+  //         open: false,
+  //         itemID: 0
+  //       });
+  //       //alert("Status "+text+" saved succefully!!!");
+  //     });
+  // }
+
+  // private _alertClickedNew(e, text): void {
+  //   let list = pnp.sp.web.lists.getByTitle("TaskList");
+  //   list.items
+  //     .getById(this.state.itemID)
+  //     .update({
+  //       Priority: text
+  //     })
+  //     .then(i => {
+  //       this.props.onRefreshItems();
+  //       this.setState({
+  //         show: false,
+  //         itemID: 0
+  //       });
+  //       //alert("Priority "+text+" saved succefully!!!");
+  //     });
+  // }
+
+  private updateStatus(): void {
+    let colors = this.state.colorCodes;
+    let list = pnp.sp.web.lists.getByTitle("Status Master");
+
+    let batch = sp.web.createBatch();
+
+    colors.map((item, index) => {
+      list.items
+      .getById(item.ID)
       .update({
-        Status: text
+        Status:item.Status,      
+        Title:item.Title
       })
-      .then(i => {
-        this.props.onRefreshItems();
-        this.setState({
-          open: false,
-          itemID: 0
+      .then(i => {  
+        this._getListItems(this.props.list);     
+      });
+    });
+
+    batch.execute().then(d => {
+     // this._getListItems(this.props.list);
+    });   
+  }
+
+  private _getColorCodes(): void {
+    sp.web.lists.getById('f99f45bf-4e40-4c70-823f-d25818442853')
+      .items
+      .select("ID", "Title", "Status", "Color_x0020_Code")
+      .get()
+      .then((response) => {
+       this.setState({
+          colorCodes: response
         });
-        //alert("Status "+text+" saved succefully!!!");
+      });
+  }
+  private _getOwners(): void {
+    sp.web.lists.getById('486f4cff-5602-413e-b471-e4765aff56a3')
+      .items.filter("Project/ID eq 1 and Status eq 'Active'")
+      .select("ProjectID", "TeamMember/ID","TeamMember/Title","Status").expand("TeamMember")
+      .get()
+      .then((response) => {
+       this.setState({
+          ownerList: response,
+          managerList: response,
+        });
       });
   }
 
-  private _alertClickedNew(e, text): void {
-    let list = pnp.sp.web.lists.getByTitle("TaskList");
+  private _getListItems(list): void {
+    
+    if(list === "")
+      return;
+    //Get all list items
+    sp.web.lists.getById(list)
+      .items.filter("Projects/ID eq 1")
+      .select("ID","Title", "AssignedTo/Title", "AssignedTo/ID", "Managers/Title", "Managers/ID","DueDate", "Status","Status0/Color_x0020_Code", "Status0/ID", "Status0/Status","Priority","Tags").expand("AssignedTo", "Managers", "Status0")
+      .get()
+      .then((response) => {
+        this.setState({
+          items: response
+        });
+      });
+  }
+
+  private _updateTaskStatus(Status) {
+    let item = this.state.currentItem;
+
+    let list = pnp.sp.web.lists.getByTitle("NonPeriodicProjects");
     list.items
-      .getById(this.state.itemID)
+      .getById(item.ID)
       .update({
-        Priority: text
+        Status0Id: Status.ID
       })
       .then(i => {
-        this.props.onRefreshItems();
-        this.setState({
-          show: false,
-          itemID: 0
-        });
-        //alert("Priority "+text+" saved succefully!!!");
+        this._getListItems(this.props.list);
+        // let activity = {
+        //   projectId : this.state.projectId,
+        //   taskId: item.ID,
+        //   activityFor:'Status',
+        //   activityByUserId:11,
+        //   activityDate: new Date().toDateString(),
+        //   oldValue: item.Status0.Status,
+        //   newValue: Status.Status
+        // };
+        
+        // this.addActivityLog(activity);
+      });
+  }
+
+  public addActivityLog(activity){  
+  sp.web.lists.getById('Activity Log').items.add({
+          Project_x0020_NameId: activity.projectId,
+          Task_x0020_NameId: activity.taskId,
+          Activity_x0020_For: activity.activityFor,
+          Activity_x0020_ById:activity.activityByUserId,
+          Activity_x0020_Date: activity.activityDate,
+          Old_x0020_Value: activity.oldValue,
+          New_x0020_Value: activity.newValue
+      }).then((iar: ItemAddResult) => {
+      console.log(iar);
       });
   }
   

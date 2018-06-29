@@ -1,8 +1,9 @@
 export interface IBaseTableProps {
     fields: ISpField[];
-    items: ISpTaskItem[];
-    colorCodes:ISpColorCode[];
-    owners:ISpOwner[];
-    onRefreshItems: () => void;
+    list:string;
+   // items: ISpTaskItem[];
+    //colorCodes:ISpColorCode[];
+    //owners:ISpOwner[];
+   // onRefreshItems: () => void;
   }
   
