@@ -34,8 +34,8 @@ export default class Activities extends React.Component<{}, IActivityState> {
         return ( 
             <div> 
                 <TooltipHost hostClassName={styles["activityTooltip"]} content="Show Activity">
-                   <span>
-                    <i className={`ms-Icon ms-Icon--Globe ${styles["activityBtn"]}`} onClick={this._showPanel} aria-hidden="true"></i>
+                    <span>
+                       <i className={`ms-Icon ms-Icon--Globe ${styles["activityBtn"]}`} onClick={this._showPanel} aria-hidden="true"></i>
                     </span>
                 </TooltipHost>              
                 
