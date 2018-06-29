@@ -43,10 +43,10 @@
         //color: #fff!important;    
         font-size: 13px!important;    
     }
-    #popover-trigger-click .popover-content{
-        min-width:400px!important;	
+    .statusPopoverContent .popover-content.popover-content{
+        /*min-width:400px!important;	*/
     }
-    #popover-trigger-click .popover-content div{
+    .statusPopoverContent .popover-content div{
         width:100%!important;	
     }
     /*#popover-trigger-click .popover-content div > div{
@@ -58,12 +58,13 @@
         padding-top: 4px!important;
         font-size: 13px!important;
     }*/
-    #popover-trigger-click .popover-content{
+    .statusPopoverContent .popover-content{
         display:flex!important;
     }
-    #popover-trigger-click .popover-content div > div{
+    .statusPopoverContent .popover-content div > div{
         flex: 0 0 32px!important;
-        width: 115px!important;
+        /*width: 115px!important;*/
+        width: 100%!important;
         height: 32px!important;
         display: inline-block;
         margin-right: 5px;

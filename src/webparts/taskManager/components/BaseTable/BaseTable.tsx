@@ -62,7 +62,8 @@ export interface PopOverState {
     priority: string;
   }[];
   currentItem: any;
-  projectId: number
+  projectId: number,
+  newItem:string;
 }
 
 export default class BaseTable extends React.Component<
@@ -139,7 +140,8 @@ export default class BaseTable extends React.Component<
       }
     ],
     currentItem:{},
-    projectId: 1
+    projectId: 1,
+    newItem:"",
     };
     this.statusTemplate = this.statusTemplate.bind(this);
     this.ownerTemplate = this.ownerTemplate.bind(this);
@@ -162,6 +164,11 @@ export default class BaseTable extends React.Component<
 //   // if(nextProps.items.length > 0 && nextProps.items.length != this.state.items.length)
 //     this.setState({items: this.props.items })
 // }
+
+  componentWillReceiveProps(nextProps){
+    this.setState({projectId:nextProps.projectId});
+    this._getListItems(this.props.list, nextProps.projectId);
+  }
   private handleLoginClick(): void {
     jQuery("table").show();
   }
@@ -172,7 +179,7 @@ export default class BaseTable extends React.Component<
 componentDidMount(){
   this._getColorCodes();
   this._getOwners();
-  this._getListItems(this.props.list);
+  this._getListItems(this.props.list, this.props.projectId);
 }
 onOwnerChange(e){
   this.setState({ownerSearchString:e.target.value});
@@ -226,7 +233,8 @@ tagsTemplate(rowData, column){
       onHide={this.onTagPopoverHide}
       rootClose
     >
-      <Popover id="popover-trigger-click">
+   
+      <Popover id="popover-trigger-click" >
         <div >
         <input id="tagSearchId" type="text" placeholder="Tag" onChange={this.onTagChange.bind(this)}/>
           { 
@@ -236,6 +244,7 @@ tagsTemplate(rowData, column){
           }
         </div> 
     </Popover>
+
     </Overlay>
   </div>)
 
@@ -307,6 +316,23 @@ managerTemplate(rowData, column){
     </Overlay>
   </div>)
 }
+onChangeItem(e){
+  this.setState({newItem : e.target.value});
+}
+
+onAddItem(e){
+      sp.web.lists.getByTitle('NonPeriodicProjects').items.add({
+        Title: this.state.newItem,
+        ProjectsId: this.state.projectId
+    }).then((iar: ItemAddResult) => {
+      this.setState({ newItem: ""});
+      this._getListItems(this.props.list, this.state.projectId); 
+    });
+}
+
+onCreateNewClick(e){
+  this.setState({ newItem: ""});
+}
 
 onStatusAddEdit(){
   // let colors = this.state.colorCodes;
@@ -367,7 +393,7 @@ let statusPopOver;
             })
           }           
         </div>
-        <Button id="statusApply" bsStyle="link" onClick={this.onStatusApply}>Apply</Button>
+        <Button id="statusApply" bsStyle="link" style={{marginTop: 8}} onClick={this.onStatusApply}>Apply</Button>
       </div>
     )
   }
@@ -385,7 +411,7 @@ let statusPopOver;
       onHide={this.onStatusPopoverHide}
       rootClose
     >
-      <Popover id="popover-trigger-focus">
+      <Popover id="popover-trigger-focus" className="statusPopoverContent">
         { statusPopOver }
       </Popover>
     </Overlay>
@@ -405,6 +431,7 @@ dueDateTemplate(rowData, column){
   public render(): React.ReactElement<IBaseTableProps> {
     var components: JSX.Element[] = [];
     return (
+      <div style={{position:'relative'}}>
       <DataTable
         value={this.state.items}
         scrollable={true}
@@ -448,19 +475,24 @@ dueDateTemplate(rowData, column){
           style={{ padding: 0 }}
         /> */}
         <Column field="Priority" header="Priority" style={{ width: "6em" }}/>
-      </DataTable>      
+      </DataTable>   
+      <div>
+        <input type="text" placeholder="Create New Task" value={this.state.newItem} style={{width:"91%", padding: "3px 0px 6px 0px", marginTop:"3px"}} onChange={(e)=> this.onChangeItem(e)}/>
+        <Button onClick={(e) => this.onAddItem(e)}>Add</Button>
+      </div>
+      </div>   
     );
   }
 
-  private _getTableHeaders(props) {
-    if (props.fields.length === 0) return null;
+  // private _getTableHeaders(props) {
+  //   if (props.fields.length === 0) return null;
 
-    let _tableHeaders: string;
-    this.props.fields.map((field: ISpField, index: number) => {
-      _tableHeaders += "<th>" + field.Title + "</th>";
-    });
-    return _tableHeaders;
-  }
+  //   let _tableHeaders: string;
+  //   this.props.fields.map((field: ISpField, index: number) => {
+  //     _tableHeaders += "<th>" + field.Title + "</th>";
+  //   });
+  //   return _tableHeaders;
+  // }
   // private _getTableRows(props) {
   //   if (props.items.length === 0) return null;
 
@@ -548,7 +580,7 @@ dueDateTemplate(rowData, column){
         Title:item.Title
       })
       .then(i => {  
-        this._getListItems(this.props.list);     
+        this._getListItems(this.props.list, this.state.projectId);     
       });
     });
 
@@ -581,13 +613,14 @@ dueDateTemplate(rowData, column){
       });
   }
 
-  private _getListItems(list): void {
+  private _getListItems(list, projectId): void {
     
     if(list === "")
       return;
     //Get all list items
+   // let filter = ""
     sp.web.lists.getById(list)
-      .items.filter("Projects/ID eq 1")
+      .items.filter("Projects/ID eq " + projectId)
       .select("ID","Title", "AssignedTo/Title", "AssignedTo/ID", "Managers/Title", "Managers/ID","DueDate", "Status","Status0/Color_x0020_Code", "Status0/ID", "Status0/Status","Priority","Tags").expand("AssignedTo", "Managers", "Status0")
       .get()
       .then((response) => {
@@ -607,7 +640,7 @@ dueDateTemplate(rowData, column){
         Status0Id: Status.ID
       })
       .then(i => {
-        this._getListItems(this.props.list);
+        this._getListItems(this.props.list, this.state.projectId);
         // let activity = {
         //   projectId : this.state.projectId,
         //   taskId: item.ID,

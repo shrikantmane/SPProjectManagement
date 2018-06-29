@@ -10,6 +10,8 @@ import { escape } from '@microsoft/sp-lodash-subset';
 import BaseTable from './BaseTable/BaseTable'
 import {sp, ItemAddResult} from "@pnp/sp";
 import  Activities from '../components/Activities/ActivityLayer';
+import  TeamMember from './TeamMember/TeamMember';
+import Projects from './Projects/Projects';
 
 export default class TaskManager extends React.Component<ITaskManagerProps, ITaskManagerState> {
   constructor(props){
@@ -18,30 +20,50 @@ export default class TaskManager extends React.Component<ITaskManagerProps, ITas
       fields: [],
       items: [],
       colorCodes: [],
-      owners: []
+      owners: [],
+      projectId:0
     }
+    this.projectIdHandler = this.projectIdHandler.bind(this);
   }
   public render(): React.ReactElement<ITaskManagerProps> {
+    let table;
+    if(this.state.projectId != 0){
+    table = (<BaseTable 
+        list= {this.props.list}
+        projectId = {this.state.projectId}
+      />)
+    }
+    //let  BaseTable()
     return (
       <div>
+      <Projects projectIdCallout = {this.projectIdHandler} />
+      <TeamMember projectId = {this.state.projectId}/>
       <Activities />
       <div className="BaseTableOuterContainer">
-      <BaseTable 
-        fields = {this.state.fields}
+      {/* <BaseTable 
         list= {this.props.list}
-      />
+        projectId = {this.state.projectId}
+      /> */}
+           {table}
         </div>
       </div>
     );
   }
 
-  public componentDidMount() {
+  private projectIdHandler(project){
+    this.setState({
+      projectId: project
+    });
+    console.log('SelectedProject', this.state.projectId);
+  }
+
+  componentDidMount() {
   //  this._getListFields(this.props);
    // this._getListItems(this.props);
     // this._getColorCodes();
     // this._getOwners();
   }
-  public componentWillReceiveProps(nextProps) {
+  componentWillReceiveProps(nextProps) {
    // this._getListFields(nextProps);
    // this._getListItems(nextProps);
   }
