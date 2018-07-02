@@ -3,5 +3,6 @@ export interface ITaskManagerState{
     items:ISpTaskItem[];
     colorCodes:ISpColorCode[];
     owners:ISpOwner[];
-    projectId: number
+    projectId: number,
+    updateTeamMember:boolean;
 }

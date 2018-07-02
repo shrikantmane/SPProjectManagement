@@ -89,6 +89,7 @@ div#workbenchPageContent {
     color: #000!important;
     border: 1px solid #ddd!important;
     font-weight: 600!important;
+    float: right;
     }
     .addIcon{
     color: #66ccf5!important;
@@ -114,10 +115,38 @@ div#workbenchPageContent {
     .popover-content .form-group {
         margin-bottom: 5px!important;
     }
-    .nav>li>a:focus{
-        background-color: #c8c8c8!important;
-    }
     .ControlZone-control{
      width: 200px;
     }
+
+
+    .nav-tabs>li>a {
+        color: #000;
+        font-weight: 300;
+    }
+    .nav-tabs>li.active>a{
+        border:none!important;
+    }
+    .nav-tabs>li:first-child>a {
+        font-weight: 600!important;
+        font-size: 13px!important;
+        color: #000;
+    }
+    .nav-tabs>li:first-child>a:hover {
+        color:#00A1E5!important;
+    }
+    .nav-stacked>li+li {   
+        padding-left: 16px!important;
+    }
+    .nav-stacked>li+li a {   
+        padding: 5px 15px!important;
+    }
+
+    ul.nav.nav-tabs.nav-stacked {
+        border: 0px!important;
+    }
+    // .nav-stacked{
+    //     height: 365px;
+    //     overflow-y: auto;
+    // }
 }
