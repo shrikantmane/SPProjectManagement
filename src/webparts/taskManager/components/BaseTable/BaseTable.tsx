@@ -155,7 +155,7 @@ export default class BaseTable extends React.Component<
     this.onStatusPopoverHide = this.onStatusPopoverHide.bind(this);
     this.dueDateTemplate = this.dueDateTemplate.bind(this);
     this.onStatusAddEdit = this.onStatusAddEdit.bind(this);
-   // this.handleChangeStatus = this.handleChangeStatus.bind(this, item);
+    this.taskEditor = this.taskEditor.bind(this);
     this.onStatusApply = this.onStatusApply.bind(this);
   } 
 // componentWillReceiveProps(nextProps, prevProps){
@@ -168,6 +168,7 @@ export default class BaseTable extends React.Component<
   componentWillReceiveProps(nextProps){
     this.setState({projectId:nextProps.projectId});
     this._getListItems(this.props.list, nextProps.projectId);
+    this._getOwners(nextProps.projectId);
   }
   private handleLoginClick(): void {
     jQuery("table").show();
@@ -178,7 +179,7 @@ export default class BaseTable extends React.Component<
 
 componentDidMount(){
   this._getColorCodes();
-  this._getOwners();
+  this._getOwners(this.props.projectId);
   this._getListItems(this.props.list, this.props.projectId);
 }
 onOwnerChange(e){
@@ -424,9 +425,26 @@ dueDateTemplate(rowData, column){
   return(<span>{date.toDateString()}</span>)
 }
 
-  taskEditor(props) {
-    return <InputText type="text" value={props.rowData.title} />;
-  }
+onUpdateTitle(rowData){
+  sp.web.lists.getByTitle('NonPeriodicProjects').items.getById(rowData.ID).update({
+    Title: rowData.Title,
+    ProjectsId: this.state.projectId
+}).then((iar: ItemAddResult) => {
+  //this._getListItems(this.props.list, this.state.projectId); 
+});
+}
+
+onEditorValueChange(props, target) {
+    let updatedItems = [...props.value];
+    let currentItem = find(updatedItems, { 'Id' : props.rowData.Id }); 
+    currentItem.Title = target.value;
+    this.setState({items: updatedItems});
+}
+
+taskEditor(props) {
+  return (<InputText type="text" value={props.rowData.Title} onChange={(e) => this.onEditorValueChange(props, e.target)} onBlur={(e) => this.onUpdateTitle(props.rowData)}/>)
+}
+
  // private _menuButtonElement: HTMLElement | null;
   public render(): React.ReactElement<IBaseTableProps> {
     var components: JSX.Element[] = [];
@@ -600,9 +618,9 @@ dueDateTemplate(rowData, column){
         });
       });
   }
-  private _getOwners(): void {
+  private _getOwners(projectId): void {
     sp.web.lists.getById('486f4cff-5602-413e-b471-e4765aff56a3')
-      .items.filter("Project/ID eq 1 and Status eq 'Active'")
+      .items.filter("Project/ID eq " + projectId + " and Status eq 'Active'")
       .select("ProjectID", "TeamMember/ID","TeamMember/Title","Status").expand("TeamMember")
       .get()
       .then((response) => {
