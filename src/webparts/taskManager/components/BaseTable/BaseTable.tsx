@@ -368,7 +368,7 @@ let statusPopOver;
       {
         this.state.colorCodes.map((item,index)=>{
           return (
-          <div key={index} style={{ backgroundColor: item.Color_x0020_Code,height:'2em', textAlign: 'center', marginBottom:'5px', padding:'3px'}} onClick={(e) => this._updateTaskStatus(item)}>
+          <div key={index} style={{ backgroundColor: item.Color_x0020_Code,height:'2em', color:'#fff', textAlign: 'center', marginBottom:'5px', padding:'3px'}} onClick={(e) => this._updateTaskStatus(item)}>
               <span>{item.Status}</span>
           </div>)
         })
@@ -400,7 +400,7 @@ let statusPopOver;
      
    return(
     <div>      
-      <div onClick={(e) => this.setState({ currentItem:rowData, statusTarget: e.target, showStatusPopover: !this.state.showStatusPopover })} style={{backgroundColor: color, height: '2.5em', width:'100%', textAlign: 'center'}}>{status}</div>
+      <div onClick={(e) => this.setState({ currentItem:rowData, statusTarget: e.target, showStatusPopover: !this.state.showStatusPopover })} style={{backgroundColor: color, height: '2.9em', width:'100%', textAlign: 'center', paddingTop: 7, color: '#fff'}}>{status}</div>
       
     <Overlay
       show={this.state.showStatusPopover}
@@ -632,7 +632,10 @@ dueDateTemplate(rowData, column){
 
   private _updateTaskStatus(Status) {
     let item = this.state.currentItem;
-
+    item.Status0 = Status;
+    this.setState({
+      currentItem : item
+    })
     let list = pnp.sp.web.lists.getByTitle("NonPeriodicProjects");
     list.items
       .getById(item.ID)
