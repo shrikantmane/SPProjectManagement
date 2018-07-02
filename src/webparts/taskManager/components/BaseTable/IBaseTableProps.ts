@@ -1,6 +1,7 @@
 export interface IBaseTableProps {
-    fields: ISpField[];
+    // fields: ISpField[];
     list:string;
+    projectId:number;
    // items: ISpTaskItem[];
     //colorCodes:ISpColorCode[];
     //owners:ISpOwner[];

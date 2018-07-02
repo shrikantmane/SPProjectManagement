@@ -43,10 +43,10 @@
         //color: #fff!important;    
         font-size: 13px!important;    
     }
-    #popover-trigger-click .popover-content{
-        min-width:400px!important;	
-    }
-    #popover-trigger-click .popover-content div{
+    // .statusPopoverContent .popover-content.popover-content{
+    //     /*min-width:400px!important;	*/
+    // }
+    .statusPopoverContent .popover-content div{
         width:100%!important;	
     }
     /*#popover-trigger-click .popover-content div > div{
@@ -58,15 +58,64 @@
         padding-top: 4px!important;
         font-size: 13px!important;
     }*/
-    #popover-trigger-click .popover-content{
+    .statusPopoverContent .popover-content{
         display:flex!important;
     }
-    #popover-trigger-click .popover-content div > div{
+    .statusPopoverContent .popover-content div > div{
         flex: 0 0 32px!important;
-        width: 115px!important;
+        /*width: 115px!important;*/
+        width: 100%!important;
         height: 32px!important;
         display: inline-block;
         margin-right: 5px;
     }
+
     
+    
+}
+div#workbenchPageContent {
+    max-width: 10000px !important;
+    padding-left: 400px !important;
+    padding-right: 2px !important;
+}
+.projectOuterContainer{
+    .addBtn{
+        border-radius: 58px!important;
+    padding: 5px 15px!important;
+    font-size: 12px!important;
+    background: #fff!important;
+    color: #000!important;
+    border: 1px solid #ddd!important;
+    font-weight: 600!important;
+    }
+    .addIcon{
+    color: #66ccf5!important;
+    margin-right: 5px!important;
+    }
+    
+    .col-form-label{
+    font-size: 10px!important;
+    color: #383737!important;
+    text-transform: uppercase!important;
+    }
+    .popover-content .form-group .form-control {   
+    height: auto!important;
+    padding: 4px 12px!important;
+    font-size: 13px!important;
+    border-radius: 2px!important;
+    box-shadow: none!important;
+    }
+    .ms-BasePicker-input, .pickerInput_4fe0caaf {
+        height: 30px!important;
+        border-radius: 2px!important;
+    }
+    .popover-content .form-group {
+        margin-bottom: 5px!important;
+    }
+    .nav>li>a:focus{
+        background-color: #c8c8c8!important;
+    }
+    .ControlZone-control{
+     width: 200px;
+    }
 }
