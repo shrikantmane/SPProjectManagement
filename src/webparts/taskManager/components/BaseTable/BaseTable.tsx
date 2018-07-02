@@ -158,12 +158,6 @@ export default class BaseTable extends React.Component<
     this.taskEditor = this.taskEditor.bind(this);
     this.onStatusApply = this.onStatusApply.bind(this);
   } 
-// componentWillReceiveProps(nextProps, prevProps){
-// // TODO :Need to find better approch
-//  // this.setState({items: this.props.items, colorCodes:this.props.colorCodes, ownerList: this.props.owners, managerList: this.props.owners})
-//   // if(nextProps.items.length > 0 && nextProps.items.length != this.state.items.length)
-//     this.setState({items: this.props.items })
-// }
 
   componentWillReceiveProps(nextProps){
     this.setState({projectId:nextProps.projectId});
@@ -260,8 +254,8 @@ ownerTemplate(rowData, column){
     });
   }
  return(
-    <div>
-      <i className="fa fa-user"></i><span style={{marginLeft:"5px"}} onClick={(e) => this.setState({ ownerTarget: e.target, showOwnerPopover: !this.state.showOwnerPopover , ownerSearchString: '' })}>{rowData.AssignedTo && rowData.AssignedTo.length > 0 ? rowData.AssignedTo[0].Title : ""}</span>
+    <div onClick={(e) => this.setState({ ownerTarget: e.target, showOwnerPopover: !this.state.showOwnerPopover , ownerSearchString: '' })}>
+     <span> <i className="fa fa-user" style={{marginLeft:"5px"}}></i> {rowData.AssignedTo && rowData.AssignedTo.length > 0 ? rowData.AssignedTo[0].Title : ""}</span>
     <Overlay
       show={this.state.showOwnerPopover}
       target={this.state.ownerTarget}
@@ -317,15 +311,22 @@ managerTemplate(rowData, column){
     </Overlay>
   </div>)
 }
+
 onChangeItem(e){
   this.setState({newItem : e.target.value});
+}
+
+onNewTaskKeyPress(e){
+  if(e.key==="Enter"){
+    this.onAddItem(e);
+  }
 }
 
 onAddItem(e){
       sp.web.lists.getByTitle('NonPeriodicProjects').items.add({
         Title: this.state.newItem,
         ProjectsId: this.state.projectId
-    }).then((iar: ItemAddResult) => {
+    }).then(() => {
       this.setState({ newItem: ""});
       this._getListItems(this.props.list, this.state.projectId); 
     });
@@ -357,8 +358,8 @@ handleChangeStatus(item, e){
 onStatusApply(e){
   this.setState({showAddEditStatus : !this.state.showAddEditStatus});
   this.updateStatus();
- // this._updateTaskStatus();
 }
+
 statusTemplate(rowData, column) {
 let status = rowData.Status0 ? rowData.Status0.Status : "";
 let color = rowData.Status0 ? rowData.Status0.Color_x0020_Code: "";   
@@ -429,7 +430,7 @@ onUpdateTitle(rowData){
   sp.web.lists.getByTitle('NonPeriodicProjects').items.getById(rowData.ID).update({
     Title: rowData.Title,
     ProjectsId: this.state.projectId
-}).then((iar: ItemAddResult) => {
+}).then(() => {
   //this._getListItems(this.props.list, this.state.projectId); 
 });
 }
@@ -442,7 +443,7 @@ onEditorValueChange(props, target) {
 }
 
 taskEditor(props) {
-  return (<InputText type="text" value={props.rowData.Title} onChange={(e) => this.onEditorValueChange(props, e.target)} onBlur={(e) => this.onUpdateTitle(props.rowData)}/>)
+  return (<InputText type="text" style={{backgroundColor:'white'}} value={props.rowData.Title} onChange={(e) => this.onEditorValueChange(props, e.target)} onBlur={(e) => this.onUpdateTitle(props.rowData)}/>)
 }
 
  // private _menuButtonElement: HTMLElement | null;
@@ -495,95 +496,14 @@ taskEditor(props) {
         <Column field="Priority" header="Priority" style={{ width: "6em" }}/>
       </DataTable>   
       <div>
-        <input type="text" placeholder="Create New Task" value={this.state.newItem} style={{width:"91%", padding: "3px 0px 6px 0px", marginTop:"3px"}} onChange={(e)=> this.onChangeItem(e)}/>
+        <input type="text" placeholder="Create New Task" value={this.state.newItem} style={{width:"91%", padding: "3px 0px 6px 0px", marginTop:"3px"}} onKeyPress={(e)=>this.onNewTaskKeyPress(e)} onChange={(e)=> this.onChangeItem(e)} />
         <Button onClick={(e) => this.onAddItem(e)}>Add</Button>
       </div>
       </div>   
     );
   }
 
-  // private _getTableHeaders(props) {
-  //   if (props.fields.length === 0) return null;
-
-  //   let _tableHeaders: string;
-  //   this.props.fields.map((field: ISpField, index: number) => {
-  //     _tableHeaders += "<th>" + field.Title + "</th>";
-  //   });
-  //   return _tableHeaders;
-  // }
-  // private _getTableRows(props) {
-  //   if (props.items.length === 0) return null;
-
-  //   let _tableHeaders: string;
-  //   this.props.items.map((item: ISpItem, index: number) => {
-  //     _tableHeaders += "<td>" + item.Title + "</td>";
-  //   });
-  //   return _tableHeaders;
-  // }
-
-  handleClick(e) {
-    this.setState({
-      open: true,
-      itemID: e.target.firstChild.textContent
-    });
-  }
-
-  handleClickNew(e) {
-    this.setState({
-      show: true,
-      itemID: e.target.firstChild.textContent
-    });
-    //console.log("itemID: ", e.target.firstChild.textContent);
-  }
-
-  handleClose(e) {
-    this.setState({
-      open: false
-      //itemID: 0
-    });
-  }
-
-  handleCloseNew(e) {
-    this.setState({
-      show: false
-      //itemID: 0
-    });
-  }
-
-  // private _alertClicked(e, text): void {
-  //   let list = pnp.sp.web.lists.getByTitle("TaskList");
-  //   list.items
-  //     .getById(this.state.itemID)
-  //     .update({
-  //       Status: text
-  //     })
-  //     .then(i => {
-  //       this.props.onRefreshItems();
-  //       this.setState({
-  //         open: false,
-  //         itemID: 0
-  //       });
-  //       //alert("Status "+text+" saved succefully!!!");
-  //     });
-  // }
-
-  // private _alertClickedNew(e, text): void {
-  //   let list = pnp.sp.web.lists.getByTitle("TaskList");
-  //   list.items
-  //     .getById(this.state.itemID)
-  //     .update({
-  //       Priority: text
-  //     })
-  //     .then(i => {
-  //       this.props.onRefreshItems();
-  //       this.setState({
-  //         show: false,
-  //         itemID: 0
-  //       });
-  //       //alert("Priority "+text+" saved succefully!!!");
-  //     });
-  // }
-
+  /* Api Call */
   private updateStatus(): void {
     let colors = this.state.colorCodes;
     let list = pnp.sp.web.lists.getByTitle("Status Master");
@@ -685,49 +605,8 @@ taskEditor(props) {
           Activity_x0020_Date: activity.activityDate,
           Old_x0020_Value: activity.oldValue,
           New_x0020_Value: activity.newValue
-      }).then((iar: ItemAddResult) => {
-      console.log(iar);
+      }).then(() => {
       });
-  }
+  } 
   
-  //css starts
-  HideSpan = {
-    display: "none" as "none"
-  };
-  StatusPickerClass = {
-    position: "relative" as "relative",
-    background: "#fff" as "#fff"
-  };
-
-  NotStartedClass = {
-    background: "#ff0066" as "#ff0066",
-    color: "white" as "white",
-    width: "120px" as "120px",
-    margin: "5px" as "5px"
-  };
-  WorkingClass = {
-    background: "#ffcc00" as "#ffcc00",
-    color: "white" as "white",
-    width: "120px" as "120px",
-    margin: "5px" as "5px"
-  };
-  InProcessClass = {
-    background: "#9966ff" as "#9966ff",
-    color: "white" as "white",
-    width: "120px" as "120px",
-    margin: "5px" as "5px"
-  };
-  DoneClass = {
-    background: "#99ff66" as "#99ff66",
-    color: "white" as "white",
-    width: "120px" as "120px",
-    margin: "5px" as "5px"
-  };
-
-  WaitingClass = {
-    background: "#ff6600" as "#ff6600",
-    color: "white" as "white",
-    width: "120px" as "120px",
-    margin: "5px" as "5px"
-  };
 }
