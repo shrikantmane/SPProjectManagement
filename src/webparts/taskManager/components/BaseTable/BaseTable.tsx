@@ -28,6 +28,7 @@ import { Row } from "primereact/components/row/Row";
 import { InputText } from "primereact/components/inputtext/InputText";
 import { OverlayTrigger, Popover, Overlay, Button, ButtonToolbar } from "react-bootstrap";
 import { inputProperties } from "@uifabric/utilities";
+import styles from './BatchActions.module.scss';
 
 export interface PopOverState {
   open: boolean;
@@ -64,6 +65,10 @@ export interface PopOverState {
   currentItem: any;
   projectId: number,
   newItem:string;
+  //Batch Actions
+  selectionCount?: string;
+  batchActionsVisible?: boolean;
+  selectionText?: string;
 }
 
 export default class BaseTable extends React.Component<
@@ -157,6 +162,9 @@ export default class BaseTable extends React.Component<
     this.onStatusAddEdit = this.onStatusAddEdit.bind(this);
    // this.handleChangeStatus = this.handleChangeStatus.bind(this, item);
     this.onStatusApply = this.onStatusApply.bind(this);
+    //Batch Actions
+    this._closeBatchActions = this._closeBatchActions.bind(this);
+    this._deletePulse = this._deletePulse.bind(this);
   } 
 // componentWillReceiveProps(nextProps, prevProps){
 // // TODO :Need to find better approch
@@ -168,6 +176,8 @@ export default class BaseTable extends React.Component<
   componentWillReceiveProps(nextProps){
     this.setState({projectId:nextProps.projectId});
     this._getListItems(this.props.list, nextProps.projectId);
+    if(nextProps.updateTeamMember == true)
+      this._getOwners();
   }
   private handleLoginClick(): void {
     jQuery("table").show();
@@ -383,7 +393,7 @@ let statusPopOver;
           {
             this.state.colorCodes.map((item,index)=>{
               return (
-                  <input key={index} style={{margin:"2px", borderColor:item.Color_x0020_Code}}
+                  <input key={index} style={{margin:"2px", borderColor:item.Color_x0020_Code, borderLeft: '10px solid ' +item.Color_x0020_Code }}
                     className="statusPopover"
                     type="text"
                     value={item.Status}
@@ -430,8 +440,58 @@ dueDateTemplate(rowData, column){
  // private _menuButtonElement: HTMLElement | null;
   public render(): React.ReactElement<IBaseTableProps> {
     var components: JSX.Element[] = [];
+    //Batch Actions
+    const batchActionPopUp: JSX.Element =
+      this.state.batchActionsVisible == true ?
+      <div>
+        <div className={styles["batch-actions-menu-wrapper"]}>
+          <div></div>
+          <div className={styles["num-of-actions_wrapper"]}>
+            <div className={styles["num-of-actions"]}>{this.state.selectionCount}</div>
+          </div>
+
+          <div className={styles["batch-actions-title-section"]}>
+            <div className={styles["title"]}>{this.state.selectionText}</div>
+            {/* <div className={styles["pulses_dots"]}>
+            <div className={styles["dot"]} style={{'background' : 'rgb(162, 93, 220)'}}></div>
+            </div> */}
+          </div>
+
+          <div className={styles["batch-actions-item"]}>
+            <span><i className={`ms-Icon ms-Icon--Archive ${styles["action-icon"]}`} aria-hidden="true"></i></span>
+            <span className={styles["action-name"]}>Archive</span>
+          </div>
+
+
+          <div className={styles["batch-actions-item"]}>
+            <span><i onClick={this._deletePulse} className={`ms-Icon ms-Icon--Delete ${styles["action-icon"]}`} aria-hidden="true"></i></span>
+            <span className={styles["action-name"]}>Delete</span>
+          </div>
+
+          <div className={styles["moveto-wrapper"]}>
+            <div></div>
+            <div className={styles["batch-actions-item"]}>
+              <span><i className={`ms-Icon ms-Icon--FabricMovetoFolder ${styles["action-icon"]}`} aria-hidden="true"></i></span>
+              <span className={styles["action-name"]}>Move to</span>
+            </div>
+          </div>
+
+          <div className={styles["batch-actions-delete-item"]} >
+            <span><i onClick={this._closeBatchActions} className={`ms-Icon ms-Icon--Cancel ${styles["action-icon-delete"]}`} aria-hidden="true"></i></span>
+          </div>
+        </div>
+      </div>:null;
     return (
-      <div style={{position:'relative'}}>
+      <div style={{position:'relative'}}>   
+       <div className={styles.batchActions}>
+        <div className={styles.container}>
+          <div className={`ms-Grid-row ms-bgColor-white ms-fontColor-white ${styles.row}`}>
+            <div className="ms-Grid-col ms-lg6 ms-xl6 ms-xlPush5 ms-lgPush5">
+              {batchActionPopUp}
+            </div>     
+          </div>
+        </div>
+       </div>
       <DataTable
         value={this.state.items}
         scrollable={true}
@@ -439,7 +499,7 @@ dueDateTemplate(rowData, column){
         resizableColumns={true}
         onRowReorder={e => this.setState({ items: e.value })}
         selection={this.state.selectedItems}
-        onSelectionChange={e => this.setState({ selectedItems: e.data })}
+        onSelectionChange={e => this.selectionChanged(e)}
       >
         <Column columnKey="checkbox" selectionMode="multiple" style={{ width: "2em" }} />
         <Column columnKey="rowIcon" rowReorder={true} style={{ width: "2em" }} />
@@ -483,6 +543,77 @@ dueDateTemplate(rowData, column){
       </div>   
     );
   }
+
+  //Batch Action Methods
+  private selectionChanged(e){
+    this.setState({ selectedItems: e.data });
+    const selectionCount = e.data.length;
+
+  switch (selectionCount) {
+          case 0:
+                {
+                  this.setState({
+                    batchActionsVisible: false
+                  });
+                  return "No Item Selected";
+                }
+          case 1:
+                {
+                  this.setState({
+                    batchActionsVisible: true,
+                    selectionCount : selectionCount,
+                    selectionText :"Task Selected"
+                  });
+                  return '1 item selected';
+                }
+
+          default:
+                {
+                  this.setState({
+                    batchActionsVisible: true,
+                    selectionCount : selectionCount,
+                    selectionText :"Task Selected"
+                  });
+                  return `${selectionCount} items selected`;
+                }
+          } 
+}
+
+public _deletePulse(){
+  var data = this.state.selectedItems;
+  if(data != null){
+    if(data.length > 0){
+      var selectedItems:ISpItem[] = [];
+      
+      data.map((item, index) => {
+        selectedItems.push(item as ISpItem);
+      });
+
+      this._deleteItems(selectedItems);
+    }
+  }
+}
+
+private _deleteItems(items: ISpItem[]){
+  let batch = pnp.sp.createBatch();
+
+  items.map((item, index) => {
+    pnp.sp.web.lists.getByTitle('NonPeriodicProjects').items.getById(item["ID"]).inBatch(batch).delete().then(_ => {});
+  });
+
+  return batch.execute().then(d => {
+    this._closeBatchActions();
+  });
+}
+
+public _closeBatchActions(){
+    this.setState({
+        batchActionsVisible : false,
+        selectedItems:[]
+    });
+    this.render();
+    this._getListItems(this.props.list, this.state.projectId);
+}
 
   // private _getTableHeaders(props) {
   //   if (props.fields.length === 0) return null;
@@ -671,6 +802,8 @@ dueDateTemplate(rowData, column){
       console.log(iar);
       });
   }
+
+
   
   //css starts
   HideSpan = {

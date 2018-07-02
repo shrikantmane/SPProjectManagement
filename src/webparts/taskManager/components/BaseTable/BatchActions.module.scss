@@ -1,0 +1,190 @@
+@import '~@microsoft/sp-office-ui-fabric-core/dist/sass/SPFabricCore.scss';
+
+.batchActions {
+  .container {
+    max-width: 700px;
+    margin: 0px auto;
+    box-shadow: 0 2px 4px 0 rgba(0, 0, 0, 0.2), 0 25px 50px 0 rgba(0, 0, 0, 0.1);
+  }
+
+  .row {
+    @include ms-Grid-row;
+    @include ms-fontColor-white;
+    //background-color: $ms-color-themeDark;
+    // padding: 20px;
+  }
+
+  .column {
+    @include ms-Grid-col;
+    @include ms-lg10;
+    @include ms-xl8;
+    @include ms-xlPush2;
+    @include ms-lgPush1;
+  }
+
+  .title {
+    @include ms-font-xl;
+    @include ms-fontColor-white;
+  }
+
+  .subTitle {
+    @include ms-font-l;
+    @include ms-fontColor-white;
+  }
+
+  .description {
+    @include ms-font-l;
+    @include ms-fontColor-white;
+  }
+
+  .button {
+    // Our button
+    text-decoration: none;
+    height: 32px;
+
+    // Primary Button
+    min-width: 80px;
+    background-color: $ms-color-themePrimary;
+    border-color: $ms-color-themePrimary;
+    color: $ms-color-white;
+
+    // Basic Button
+    outline: transparent;
+    position: relative;
+    font-family: "Segoe UI WestEuropean","Segoe UI",-apple-system,BlinkMacSystemFont,Roboto,"Helvetica Neue",sans-serif;
+    -webkit-font-smoothing: antialiased;
+    font-size: $ms-font-size-m;
+    font-weight: $ms-font-weight-regular;
+    border-width: 0;
+    text-align: center;
+    cursor: pointer;
+    display: inline-block;
+    padding: 0 16px;
+
+    .label {
+      font-weight: $ms-font-weight-semibold;
+      font-size: $ms-font-size-m;
+      height: 32px;
+      line-height: 32px;
+      margin: 0 4px;
+      vertical-align: top;
+      display: inline-block;
+    }
+  }
+  .batch-actions-menu-wrapper.react-boards{
+    position: fixed;
+    transform: translateX(-70%);
+      
+  }
+  .batch-actions-menu-wrapper{
+   position: fixed;
+   transform: translateX(-70%);
+    transition: bottom .2s ease;
+      width: 570px;
+      height: 63px;
+      z-index: 9000;
+      background: #fff;
+      border-radius: 5px;
+      
+      margin-left: 10%;
+      box-shadow: 0 22px 104px -6px rgba(0,0,0,.34);
+      flex-direction: row;
+      display: flex;
+      bottom: 46px;
+      user-select: none;
+  }
+  .batch-actions-menu-wrapper .num-of-actions_wrapper {
+      width: 63px;
+      color: #fff;
+      background: #00a1e5;
+      border-radius: 5px 0 0 5px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      text-align: center;
+      cursor: default;
+  }
+  .batch-actions-menu-wrapper .num-of-actions_wrapper .num-of-actions {
+      font-size: 30px;
+  }
+  .batch-actions-menu-wrapper .batch-actions-title-section {
+      display: flex;
+      justify-content: center;
+      flex-direction: column;
+      flex: 1;
+      cursor: default;
+  }
+  .batch-actions-menu-wrapper .batch-actions-title-section .title {
+      color: #333;
+      font-size: 24px;
+      padding-left: 20px;
+      font-weight: 100;
+  }
+  .batch-actions-item {
+      display: flex;
+      flex-direction: column;
+      text-align: center;
+      margin-right: 20px;
+      cursor: pointer;
+      margin-top: 12px;
+  }
+  .batch-actions-item .ms-Icon--Archive .action-icon.icon-dapulse-archive-o {
+      top: 10px;
+  }
+  .batch-actions-item .action-name {
+      font-size: 13px;
+      bottom: -4px;
+      color : gray;;
+  }
+  .batch-actions-item .action-icon.icon-dapulse-binline-o {
+      top: 7px;
+  }
+  .batch-actions-item .action-icon {
+      font-size: 21px;
+      position: relative;
+      color:gray;;
+      font-size: 20px;
+  }
+  .batch-actions-menu-wrapper .moveto-wrapper {
+      display: flex;
+      position: relative;
+  }
+  .batch-actions-item .action-icon.icon-dapulse-moveto-o {
+      top: 8px;
+  }
+  .batch-actions-menu-wrapper .batch-actions-delete-item {
+      display: flex;
+      width: 63px;
+      cursor: pointer;
+      flex-direction: column;
+      justify-content: center;
+      text-align: center;
+      border-left: 2px solid #f1f1f1;
+  }
+
+  .batch-actions-title-section .pulses_dots {
+    color: #333;
+    padding-left: 20px;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    height: 20px;
+  }
+  .batch-actions-title-section .pulses_dots .dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 20px;
+    margin-right: 5px;
+  }
+
+  .batch-actions-delete-item .action-icon-delete{
+    font-size: 21px;
+    position: relative;
+    color:black;
+    font-size: 16px;
+    font-weight: bold;
+  }
+  .hideIDColumn{
+    display: none;
+  }
+}

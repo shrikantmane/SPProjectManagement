@@ -6,5 +6,6 @@ export interface IBaseTableProps {
     //colorCodes:ISpColorCode[];
     //owners:ISpOwner[];
    // onRefreshItems: () => void;
+   updateTeamMember : boolean;
   }
   

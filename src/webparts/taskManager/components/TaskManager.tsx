@@ -21,7 +21,8 @@ export default class TaskManager extends React.Component<ITaskManagerProps, ITas
       items: [],
       colorCodes: [],
       owners: [],
-      projectId:0
+      projectId:0,
+      updateTeamMember :false
     }
     this.projectIdHandler = this.projectIdHandler.bind(this);
   }
@@ -31,6 +32,7 @@ export default class TaskManager extends React.Component<ITaskManagerProps, ITas
     table = (<BaseTable 
         list= {this.props.list}
         projectId = {this.state.projectId}
+        updateTeamMember = {this.state.updateTeamMember}
       />)
     }
 
@@ -49,7 +51,9 @@ export default class TaskManager extends React.Component<ITaskManagerProps, ITas
       <Projects projectIdCallout = {this.projectIdHandler} />
       </div>
       <div className="col-md-9">
-          <TeamMember projectId = {this.state.projectId}/>
+          <TeamMember projectId = {this.state.projectId}
+          callbackFromParent={this.updateTeamMemberCallback}
+          />
           {/* <Activities /> */}
           {activities}
           <br/><br/>
@@ -64,7 +68,12 @@ export default class TaskManager extends React.Component<ITaskManagerProps, ITas
       </div>
     );
   }
-
+  private updateTeamMemberCallback = (UpdateTM) => {
+    console.log('UpdateTM', UpdateTM);
+    this.setState({
+        updateTeamMember : UpdateTM
+    });
+   }
   private projectIdHandler(project){
     this.setState({
       projectId: project
