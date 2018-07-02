@@ -9,7 +9,7 @@ import { SPComponentLoader } from "@microsoft/sp-loader";
 import { escape } from "@microsoft/sp-lodash-subset";
 
 import { sp, ItemAddResult } from "@pnp/sp";
-import { find } from "lodash";
+import { find, filter } from "lodash";
 
 import GunttChart from ".././GunttChart/GunttChart";
 const boldText = {
@@ -361,6 +361,7 @@ onStatusApply(e){
 }
 
 statusTemplate(rowData, column) {
+let activeStatus = filter(this.state.colorCodes, {'Is_x0020_Active' : true});
 let status = rowData.Status0 ? rowData.Status0.Status : "";
 let color = rowData.Status0 ? rowData.Status0.Color_x0020_Code: "";   
 let statusPopOver;
@@ -368,7 +369,7 @@ let statusPopOver;
     statusPopOver = (
       <div >
       {
-        this.state.colorCodes.map((item,index)=>{
+        activeStatus.map((item,index)=>{
           return (
           <div key={index} style={{ backgroundColor: item.Color_x0020_Code,height:'2em', color:'#fff', textAlign: 'center', marginBottom:'5px', padding:'3px'}} onClick={(e) => this._updateTaskStatus(item)}>
               <span>{item.Status}</span>
@@ -383,7 +384,7 @@ let statusPopOver;
       <div>
           <div>
           {
-            this.state.colorCodes.map((item,index)=>{
+            activeStatus.map((item,index)=>{
               return (
                   <input key={index} style={{margin:"2px", borderColor:item.Color_x0020_Code}}
                     className="statusPopover"
@@ -530,7 +531,7 @@ taskEditor(props) {
   private _getColorCodes(): void {
     sp.web.lists.getById('f99f45bf-4e40-4c70-823f-d25818442853')
       .items
-      .select("ID", "Title", "Status", "Color_x0020_Code")
+      .select("ID", "Title", "Status", "Color_x0020_Code","Is_x0020_Active")
       .get()
       .then((response) => {
        this.setState({
