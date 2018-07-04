@@ -31,6 +31,7 @@ export interface ITeamMemberState {
  currentSelectedItems?: IPersonaProps[];
  mostRecentlyUsed: IPersonaProps[];
  projectId?:number;
+ updateTeamMember:boolean;
 }
 
 export interface ISelectedUser{
@@ -79,6 +80,7 @@ const limitedSearchAdditionalProps: IBasePickerSuggestionsProps = {
 
 export interface ITeamMemberProps{
   projectId: number;
+  callbackFromParent;
 }
 
 const limitedSearchSuggestionProps: IBasePickerSuggestionsProps = assign(limitedSearchAdditionalProps, suggestionProps);
@@ -100,7 +102,8 @@ private _picker: IBasePicker<IPersonaProps>;
       peopleList: [],
       currentSelectedItems: [],
       mostRecentlyUsed: [],
-      projectId:null
+      projectId:null,
+      updateTeamMember:true
     };
 
     this._addListItem = this._addListItem.bind(this);
@@ -135,8 +138,8 @@ private _picker: IBasePicker<IPersonaProps>;
                     </Dialog>
                </div>
                 <div  onClick={this._showDialog} style={{float: "right" }}>  
-                 <TooltipHost directionalHint={DirectionalHint.bottomCenter} content="People on this board" id="ppl" calloutProps={{ gapSpace: 0 }}>
-                  <Icon id="ppl" iconName="people" className="ms-IconExample" style={{width: "30"}} />
+                 <TooltipHost directionalHint={DirectionalHint.topCenter} content="People on this board" id="ppl" calloutProps={{ gapSpace: 0 }}>
+                  <Icon id="ppl" iconName="people" className="ms-IconExample" style={{width: "30", fontSize:20}} />
                    </TooltipHost>
                 </div>
                 <Dialog
@@ -339,6 +342,7 @@ private _picker: IBasePicker<IPersonaProps>;
                 ProjectId : this.state.projectId
             }).then(response => {
                 this._onRefreshItems();
+                this.props.callbackFromParent(this.state.updateTeamMember);
                 this.setState({
                   selectedUser : []
                 });
