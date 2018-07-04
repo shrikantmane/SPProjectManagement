@@ -361,7 +361,7 @@ let updatedColorCodes = filter(colorCodes, function(item){
  });
 let color = find(updatedColorCodes, { 'ID': item.ID });
 color.Is_x0020_Active = true;
-this.updateStatus();
+this.updateStatusMaster(color, false);
 let inActiveStatus = filter(updatedColorCodes, {'Is_x0020_Active' : false});
 if(inActiveStatus.length != 0){
   updatedColorCodes.push({
@@ -372,6 +372,23 @@ if(inActiveStatus.length != 0){
   });
 }
 this.setState({colorCodes : updatedColorCodes});
+}
+onBlurStatus(item, e){
+  if(item.IsAdded == null){
+    this.updateStatusMaster(item, true);
+  }
+}
+updateStatusMaster(item,onBlur){
+  sp.web.lists.getByTitle('Status Master').items.getById(item.ID).update({
+      Status:item.Status,      
+      Title:item.Title, 
+      Color_x0020_Code: item.Color_x0020_Code,
+      Is_x0020_Active: item.Is_x0020_Active
+  }).then(() => {
+    if(onBlur){
+      this._getListItems(this.props.list, this.state.projectId); 
+    }
+  });
 }
 handleChangeStatus(item, e){
  let colorCodes = this.state.colorCodes;
@@ -385,7 +402,7 @@ onStatusApply(e){
     return item.IsAdded == null;
   }) ;
   this.setState({showAddEditStatus : !this.state.showAddEditStatus, colorCodes : colors});
-  this.updateStatus();
+ // this.updateStatus();
 }
 
 onStatusClick(rowData, e){
@@ -433,6 +450,7 @@ let statusPopOver;
                     value={item.Status}
                     disabled ={item.Color_x0020_Code == null || item.Color_x0020_Code == "" ? true : false}
                     onChange={(e) => this.handleChangeStatus(item, e)}
+                    onBlur={(e)=>this.onBlurStatus(item,e)}
                   />  
                 </div>       
               )
