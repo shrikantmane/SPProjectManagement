@@ -9,7 +9,7 @@ import { SPComponentLoader } from "@microsoft/sp-loader";
 import { escape } from "@microsoft/sp-lodash-subset";
 
 import { sp, ItemAddResult } from "@pnp/sp";
-import { find } from "lodash";
+import { find, filter } from "lodash";
 
 import GunttChart from ".././GunttChart/GunttChart";
 const boldText = {
@@ -28,7 +28,7 @@ import { Row } from "primereact/components/row/Row";
 import { InputText } from "primereact/components/inputtext/InputText";
 import { OverlayTrigger, Popover, Overlay, Button, ButtonToolbar } from "react-bootstrap";
 import { inputProperties } from "@uifabric/utilities";
-import styles from './BatchActions.module.scss';
+import styles from "./BatchActions.module.scss"
 
 export interface PopOverState {
   open: boolean;
@@ -160,24 +160,20 @@ export default class BaseTable extends React.Component<
     this.onStatusPopoverHide = this.onStatusPopoverHide.bind(this);
     this.dueDateTemplate = this.dueDateTemplate.bind(this);
     this.onStatusAddEdit = this.onStatusAddEdit.bind(this);
-   // this.handleChangeStatus = this.handleChangeStatus.bind(this, item);
+    this.taskEditor = this.taskEditor.bind(this);
     this.onStatusApply = this.onStatusApply.bind(this);
     //Batch Actions
     this._closeBatchActions = this._closeBatchActions.bind(this);
     this._deletePulse = this._deletePulse.bind(this);
   } 
-// componentWillReceiveProps(nextProps, prevProps){
-// // TODO :Need to find better approch
-//  // this.setState({items: this.props.items, colorCodes:this.props.colorCodes, ownerList: this.props.owners, managerList: this.props.owners})
-//   // if(nextProps.items.length > 0 && nextProps.items.length != this.state.items.length)
-//     this.setState({items: this.props.items })
-// }
 
   componentWillReceiveProps(nextProps){
     this.setState({projectId:nextProps.projectId});
     this._getListItems(this.props.list, nextProps.projectId);
+    this._getOwners(nextProps.projectId);
+    this._getColorCodes(nextProps.projectId);
     if(nextProps.updateTeamMember == true)
-      this._getOwners();
+      this._getOwners(nextProps.projectId);
   }
   private handleLoginClick(): void {
     jQuery("table").show();
@@ -187,8 +183,8 @@ export default class BaseTable extends React.Component<
   }
 
 componentDidMount(){
-  this._getColorCodes();
-  this._getOwners();
+  this._getColorCodes(this.props.projectId);
+  this._getOwners(this.props.projectId);
   this._getListItems(this.props.list, this.props.projectId);
 }
 onOwnerChange(e){
@@ -217,7 +213,8 @@ onTagPopoverHide = e => {
 };
 
 onStatusPopoverHide = e => {
-  if(e.target.id !="statusAddEdit" && e.target.className !="statusPopover" && e.target.id !="statusApply"){
+  let parentNode = e.target.parentNode != null && e.target.parentNode.id == "inActiveColorCodeDiv" ? true : false;
+  if(e.target.id !="statusAddEdit" && e.target.className !="statusPopover" && e.target.id !="statusApply" && !parentNode && e.target.id !="inActiveColorCodeDiv"){
     this.setState({ showStatusPopover: false, showAddEditStatus: false })
   } 
 };
@@ -269,8 +266,8 @@ ownerTemplate(rowData, column){
     });
   }
  return(
-    <div>
-      <i className="fa fa-user"></i><span style={{marginLeft:"5px"}} onClick={(e) => this.setState({ ownerTarget: e.target, showOwnerPopover: !this.state.showOwnerPopover , ownerSearchString: '' })}>{rowData.AssignedTo && rowData.AssignedTo.length > 0 ? rowData.AssignedTo[0].Title : ""}</span>
+    <div onClick={(e) => this.setState({ ownerTarget: e.target, showOwnerPopover: !this.state.showOwnerPopover , ownerSearchString: '' })}>
+     <span> <i className="fa fa-user" style={{marginLeft:"5px"}}></i> {rowData.AssignedTo && rowData.AssignedTo.length > 0 ? rowData.AssignedTo[0].Title : ""}</span>
     <Overlay
       show={this.state.showOwnerPopover}
       target={this.state.ownerTarget}
@@ -281,7 +278,7 @@ ownerTemplate(rowData, column){
       rootClose
     >
     <Popover id="popover-trigger-click">
-      <div className="test">
+      <div>
       <input id="ownerSearchId" type="text" placeholder="Person Name" onChange={this.onOwnerChange.bind(this)}/>
         { 
           owners.map(function(item, index){
@@ -326,15 +323,22 @@ managerTemplate(rowData, column){
     </Overlay>
   </div>)
 }
+
 onChangeItem(e){
   this.setState({newItem : e.target.value});
+}
+
+onNewTaskKeyPress(e){
+  if(e.key==="Enter"){
+    this.onAddItem(e);
+  }
 }
 
 onAddItem(e){
       sp.web.lists.getByTitle('NonPeriodicProjects').items.add({
         Title: this.state.newItem,
         ProjectsId: this.state.projectId
-    }).then((iar: ItemAddResult) => {
+    }).then(() => {
       this.setState({ newItem: ""});
       this._getListItems(this.props.list, this.state.projectId); 
     });
@@ -345,17 +349,57 @@ onCreateNewClick(e){
 }
 
 onStatusAddEdit(){
-  // let colors = this.state.colorCodes;
-  // colors.push({
-  //   ID : 1111111111,
-  //   Status: "",
-  //   Title:"",
-  //   Color_x0020_Code:""
-  // });
-  // this.setState({showAddEditStatus : !this.state.showAddEditStatus, colorCodes : colors});
-  this.setState({showAddEditStatus : !this.state.showAddEditStatus});
+  let inActiveStatus = filter(this.state.colorCodes, {'Is_x0020_Active' : false});
+  if(inActiveStatus.length > 0){
+    let colors = this.state.colorCodes; 
+    colors.push({
+      Status: "",
+      Title:"",
+      Color_x0020_Code:"",
+      IsAdded: true
+    });
+    this.setState({showAddEditStatus : !this.state.showAddEditStatus, colorCodes : colors});
+  }else {
+    this.setState({showAddEditStatus : !this.state.showAddEditStatus});
+  }
 }
 
+addColor(item,e){
+let colorCodes = this.state.colorCodes;
+let updatedColorCodes = filter(colorCodes, function(item){
+  return item.IsAdded == null;
+ });
+let color = find(updatedColorCodes, { 'ID': item.ID });
+color.Is_x0020_Active = true;
+this.updateStatusMaster(color, false);
+let inActiveStatus = filter(updatedColorCodes, {'Is_x0020_Active' : false});
+if(inActiveStatus.length != 0){
+  updatedColorCodes.push({
+    Status: "",
+    Title:"",
+    Color_x0020_Code:"",
+    IsAdded: true
+  });
+}
+this.setState({colorCodes : updatedColorCodes});
+}
+onBlurStatus(item, e){
+  if(item.IsAdded == null){
+    this.updateStatusMaster(item, true);
+  }
+}
+updateStatusMaster(item,onBlur){
+  sp.web.lists.getByTitle('Status Master').items.getById(item.ID).update({
+      Status:item.Status,      
+      Title:item.Title, 
+      Color_x0020_Code: item.Color_x0020_Code,
+      Is_x0020_Active: item.Is_x0020_Active
+  }).then(() => {
+    if(onBlur){
+      this._getListItems(this.props.list, this.state.projectId); 
+    }
+  });
+}
 handleChangeStatus(item, e){
  let colorCodes = this.state.colorCodes;
   let color = find(colorCodes, { 'ID': item.ID });
@@ -364,11 +408,26 @@ handleChangeStatus(item, e){
 }
 
 onStatusApply(e){
-  this.setState({showAddEditStatus : !this.state.showAddEditStatus});
-  this.updateStatus();
- // this._updateTaskStatus();
+  let colors = filter(this.state.colorCodes, function(item){
+    return item.IsAdded == null;
+  }) ;
+  this.setState({showAddEditStatus : !this.state.showAddEditStatus, colorCodes : colors});
+ // this.updateStatus();
 }
+
+onStatusClick(rowData, e){
+  let colorCodes = filter(this.state.colorCodes, function(item) { 
+    return item.IsAdded == null ; 
+  });
+  this.setState({ colorCodes:colorCodes, currentItem:rowData, statusTarget: e.target, showStatusPopover: !this.state.showStatusPopover })
+}
+
 statusTemplate(rowData, column) {
+let activeStatus = filter(this.state.colorCodes, {'Is_x0020_Active' : true});
+let updatedActiveStatus = filter(this.state.colorCodes, function(item){
+ return item.Is_x0020_Active == true || item.IsAdded == true;
+});
+let inActiveStatus = filter(this.state.colorCodes, {'Is_x0020_Active' : false});
 let status = rowData.Status0 ? rowData.Status0.Status : "";
 let color = rowData.Status0 ? rowData.Status0.Color_x0020_Code: "";   
 let statusPopOver;
@@ -376,14 +435,14 @@ let statusPopOver;
     statusPopOver = (
       <div >
       {
-        this.state.colorCodes.map((item,index)=>{
+        activeStatus.map((item,index)=>{
           return (
           <div key={index} style={{ backgroundColor: item.Color_x0020_Code,height:'2em', color:'#fff', textAlign: 'center', marginBottom:'5px', padding:'3px'}} onClick={(e) => this._updateTaskStatus(item)}>
               <span>{item.Status}</span>
           </div>)
         })
       }
-      <Button id="statusAddEdit" bsStyle="link" onClick={this.onStatusAddEdit}>Add/Edit Labels</Button>
+     <Button id="statusAddEdit" bsStyle="link" onClick={this.onStatusAddEdit}>Add/Edit Labels</Button>  
     </div>
     )
   }else {
@@ -391,18 +450,37 @@ let statusPopOver;
       <div>
           <div>
           {
-            this.state.colorCodes.map((item,index)=>{
+            updatedActiveStatus.map((item,index)=>{
               return (
-                  <input key={index} style={{margin:"2px", borderColor:item.Color_x0020_Code, borderLeft: '10px solid ' +item.Color_x0020_Code }}
+                <div>
+                  {item.Color_x0020_Code !=null && item.Color_x0020_Code != "" ? <span style={{height:"26px", width: "10px", float: "left", marginRight:"0px", backgroundColor: item.Color_x0020_Code}}></span> : null}
+                  <input key={index}
+                  // <input key={index} style={{margin:"2px", borderColor:item.Color_x0020_Code, borderLeft: '10px solid ' +item.Color_x0020_Code }}
                     className="statusPopover"
                     type="text"
                     value={item.Status}
+                    disabled ={item.Color_x0020_Code == null || item.Color_x0020_Code == "" ? true : false}
                     onChange={(e) => this.handleChangeStatus(item, e)}
-                  />         
+                    onBlur={(e)=>this.onBlurStatus(item,e)}
+                  />  
+                </div>       
               )
             })
           }           
         </div>
+        {
+          inActiveStatus.length > 0 ?
+        <div style={{marginTop: "10px"}} id="inActiveColorCodeDiv">
+          {
+          inActiveStatus.map((item,index)=>{
+                return (
+                    <span style={{height:"25px", width :"25px", backgroundColor: item.Color_x0020_Code, borderRadius:"50%", display:"inline-block", marginRight:"5px"}} onClick={(e) => this.addColor(item, e)}></span>      
+                )
+              })
+          }
+        </div> : null
+        }
+
         <Button id="statusApply" bsStyle="link" style={{marginTop: 8}} onClick={this.onStatusApply}>Apply</Button>
       </div>
     )
@@ -410,7 +488,7 @@ let statusPopOver;
      
    return(
     <div>      
-      <div onClick={(e) => this.setState({ currentItem:rowData, statusTarget: e.target, showStatusPopover: !this.state.showStatusPopover })} style={{backgroundColor: color, height: '2.9em', width:'100%', textAlign: 'center', paddingTop: 7, color: '#fff'}}>{status}</div>
+      <div onClick={(e) => this.onStatusClick(rowData, e) } style={{backgroundColor: color, height: '2.9em', width:'100%', textAlign: 'center', paddingTop: 7, color: '#fff'}}>{status}</div>
       
     <Overlay
       show={this.state.showStatusPopover}
@@ -434,9 +512,26 @@ dueDateTemplate(rowData, column){
   return(<span>{date.toDateString()}</span>)
 }
 
-  taskEditor(props) {
-    return <InputText type="text" value={props.rowData.title} />;
-  }
+onUpdateTitle(rowData){
+  sp.web.lists.getByTitle('NonPeriodicProjects').items.getById(rowData.ID).update({
+    Title: rowData.Title,
+    ProjectsId: this.state.projectId
+}).then(() => {
+  //this._getListItems(this.props.list, this.state.projectId); 
+});
+}
+
+onEditorValueChange(props, target) {
+    let updatedItems = [...props.value];
+    let currentItem = find(updatedItems, { 'Id' : props.rowData.Id }); 
+    currentItem.Title = target.value;
+    this.setState({items: updatedItems});
+}
+
+taskEditor(props) {
+  return (<InputText type="text" style={{backgroundColor:'white'}} value={props.rowData.Title} onChange={(e) => this.onEditorValueChange(props, e.target)} onBlur={(e) => this.onUpdateTitle(props.rowData)}/>)
+}
+
  // private _menuButtonElement: HTMLElement | null;
   public render(): React.ReactElement<IBaseTableProps> {
     var components: JSX.Element[] = [];
@@ -537,13 +632,13 @@ dueDateTemplate(rowData, column){
         <Column field="Priority" header="Priority" style={{ width: "6em" }}/>
       </DataTable>   
       <div>
-        <input type="text" placeholder="Create New Task" value={this.state.newItem} style={{width:"91%", padding: "3px 0px 6px 0px", marginTop:"3px"}} onChange={(e)=> this.onChangeItem(e)}/>
+        <input type="text" placeholder="Create New Task" value={this.state.newItem} style={{width:"91%", padding: "3px 0px 6px 0px", marginTop:"3px"}} onKeyPress={(e)=>this.onNewTaskKeyPress(e)} onChange={(e)=> this.onChangeItem(e)} />
         <Button onClick={(e) => this.onAddItem(e)}>Add</Button>
       </div>
       </div>   
     );
   }
-
+ 
   //Batch Action Methods
   private selectionChanged(e){
     this.setState({ selectedItems: e.data });
@@ -696,9 +791,11 @@ public _closeBatchActions(){
   //       //alert("Priority "+text+" saved succefully!!!");
   //     });
   // }
-
+ /* Api Call */
   private updateStatus(): void {
-    let colors = this.state.colorCodes;
+    let colors = filter(this.state.colorCodes, function(item){
+      return item.Is_x0020_Active == true && item.IsAdded == null;
+    }) ;
     let list = pnp.sp.web.lists.getByTitle("Status Master");
 
     let batch = sp.web.createBatch();
@@ -708,7 +805,9 @@ public _closeBatchActions(){
       .getById(item.ID)
       .update({
         Status:item.Status,      
-        Title:item.Title
+        Title:item.Title, 
+        Color_x0020_Code: item.Color_x0020_Code,
+        Is_x0020_Active: item.Is_x0020_Active
       })
       .then(i => {  
         this._getListItems(this.props.list, this.state.projectId);     
@@ -720,10 +819,10 @@ public _closeBatchActions(){
     });   
   }
 
-  private _getColorCodes(): void {
+  private _getColorCodes(projectId): void {
     sp.web.lists.getById('f99f45bf-4e40-4c70-823f-d25818442853')
-      .items
-      .select("ID", "Title", "Status", "Color_x0020_Code")
+    .items.filter("Project/ID eq " + projectId)
+      .select("ID", "Title", "Status", "Color_x0020_Code","Is_x0020_Active")
       .get()
       .then((response) => {
        this.setState({
@@ -731,9 +830,9 @@ public _closeBatchActions(){
         });
       });
   }
-  private _getOwners(): void {
+  private _getOwners(projectId): void {
     sp.web.lists.getById('486f4cff-5602-413e-b471-e4765aff56a3')
-      .items.filter("Project/ID eq 1 and Status eq 'Active'")
+      .items.filter("Project/ID eq " + projectId + " and Status eq 'Active'")
       .select("ProjectID", "TeamMember/ID","TeamMember/Title","Status").expand("TeamMember")
       .get()
       .then((response) => {
@@ -798,51 +897,7 @@ public _closeBatchActions(){
           Activity_x0020_Date: activity.activityDate,
           Old_x0020_Value: activity.oldValue,
           New_x0020_Value: activity.newValue
-      }).then((iar: ItemAddResult) => {
-      console.log(iar);
+      }).then(() => {
       });
-  }
-
-
-  
-  //css starts
-  HideSpan = {
-    display: "none" as "none"
-  };
-  StatusPickerClass = {
-    position: "relative" as "relative",
-    background: "#fff" as "#fff"
-  };
-
-  NotStartedClass = {
-    background: "#ff0066" as "#ff0066",
-    color: "white" as "white",
-    width: "120px" as "120px",
-    margin: "5px" as "5px"
-  };
-  WorkingClass = {
-    background: "#ffcc00" as "#ffcc00",
-    color: "white" as "white",
-    width: "120px" as "120px",
-    margin: "5px" as "5px"
-  };
-  InProcessClass = {
-    background: "#9966ff" as "#9966ff",
-    color: "white" as "white",
-    width: "120px" as "120px",
-    margin: "5px" as "5px"
-  };
-  DoneClass = {
-    background: "#99ff66" as "#99ff66",
-    color: "white" as "white",
-    width: "120px" as "120px",
-    margin: "5px" as "5px"
-  };
-
-  WaitingClass = {
-    background: "#ff6600" as "#ff6600",
-    color: "white" as "white",
-    width: "120px" as "120px",
-    margin: "5px" as "5px"
-  };
+  }  
 }
